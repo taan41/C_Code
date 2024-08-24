@@ -1,0 +1,6 @@
+strtoll check if all is number instead of adding each digit -> accept only digit
+#define to add params info into struct -> no
+money to double -> no
+metadata struct -> too long
+overhaul
+custom header -> nah

@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "math.h": "c",
+        "type_traits": "c",
+        "time.h": "c",
+        "stdio.h": "c",
+        "conio.h": "c",
+        "stdlib.h": "c",
+        "cstdlib": "c",
+        "string.h": "c"
+    }
+}
