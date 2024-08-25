@@ -11,8 +11,6 @@ typedef struct Subject {
     float average;
 }Subject;
 
-void add_subj(Subject *subj);
-
 void prnt_line(size_t length, int dbl_line);
 void prnt_text(size_t width, char *text, int mode);
 void prnt_menu();

@@ -8,11 +8,6 @@ int withdraw_scr();
 int transfer_scr();
 int pin_chng_scr();
 
-// Operation states
-#define OP_LOOP        1
-#define OP_FINISH      0
-#define OP_CANCELLED   -1
-
 int main() {
     srand(time(NULL));
 
