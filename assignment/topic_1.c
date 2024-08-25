@@ -172,7 +172,7 @@ void atm_input_info(void *target, size_t len, char **list_compare, size_t list_s
 }
 
 void atm_input(ATM *atm) {
-    char **account_list, line[ATM_TOTAL_META_LEN + 40];
+    char **account_list, line[ATM_DATA_LEN + 40];
     size_t list_size = 0;
 
     FILE *file = fopen("account-number-old.dat", "r");

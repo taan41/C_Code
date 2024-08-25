@@ -34,7 +34,7 @@ size_t ATM_NAME_LEN;
 size_t ATM_ACCOUNT_LEN;
 size_t ATM_PIN_LEN;
 size_t ATM_BALANCE_LEN;
-#define ATM_TOTAL_META_LEN ATM_NAME_LEN + ATM_ACCOUNT_LEN + ATM_PIN_LEN + ATM_BALANCE_LEN
+#define ATM_DATA_LEN ATM_NAME_LEN + ATM_ACCOUNT_LEN + ATM_PIN_LEN + ATM_BALANCE_LEN
 
 ATM *ATM_LIST, *CUR_ATM;
 size_t ATM_LIST_SIZE = 0;
@@ -42,7 +42,7 @@ int CUR_ATM_INDEX;
 
 void check_acc();
 void withdraw();
-void prnt_receipt(long long int withdraw_amount);
+void receipt(long long int withdraw_amount);
 void transfer();
 void change_pin();
 
@@ -55,7 +55,7 @@ size_t input_unbuffered(char *target, size_t len, int digit_only, int hiding, ch
 
 void prnt_invalid_prompt(char *prompt_msg, char *invalid_msg, size_t prompt_len, size_t input_len);
 void prnt_line(size_t len, char ch);
-void prnt_bank_name();
+void prnt_header();
 void prnt_menu();
 void prnt_main_screen();
 void flush();
@@ -116,7 +116,7 @@ int main() {
 
 void check_acc() {
     system("cls");
-    prnt_bank_name();
+    prnt_header();
     printf(" Checking account's balance...\n");
     prnt_line(UI_WIDTH, '-');
 
@@ -146,7 +146,7 @@ void withdraw() {
 
     while(!end) {
         system("cls");
-        prnt_bank_name();
+        prnt_header();
 
         money_to_str(balance, CUR_ATM->balance);
         printf(
@@ -237,7 +237,7 @@ void withdraw() {
                             flush();
                             if(confirm == 'Y' || confirm == 'y') {
                                 CUR_ATM->balance -= 1100;
-                                prnt_receipt(withdraw_amount);
+                                receipt(withdraw_amount);
                             }
 
                             CUR_ATM->balance -= withdraw_amount;
@@ -276,9 +276,9 @@ void withdraw() {
     free(input);
 }
 
-void prnt_receipt(long long int withdraw_amount) {
+void receipt(long long int withdraw_amount) {
     system("cls");
-    prnt_bank_name();
+    prnt_header();
 
     char header[] = "BIEN LAI RUT TIEN TAI ATM";
     printf("%*s%s\n", (UI_WIDTH - strlen(header)) / 2, "", header);
@@ -334,7 +334,7 @@ void transfer() {
     strcpy(buffer, "0");
 
     system("cls");
-    prnt_bank_name();
+    prnt_header();
 
     money_to_str(buffer, CUR_ATM->balance);
     printf(
@@ -405,7 +405,7 @@ void transfer() {
 
 void change_pin() {
     system("cls");
-    prnt_bank_name();
+    prnt_header();
     printf(" Changing PIN...\n");
     prnt_line(UI_WIDTH, '-');
 
@@ -467,7 +467,7 @@ void change_pin() {
 }
 
 int log_in() {
-    prnt_bank_name();
+    prnt_header();
     printf(" Logging in an account\n");
     prnt_line(UI_WIDTH, '-');
 
@@ -552,7 +552,7 @@ void load_atm_list() {
         &ATM_BALANCE_LEN
     );
 
-    char line[ATM_TOTAL_META_LEN + 40], *data_ptr;
+    char line[ATM_DATA_LEN + 40], *data_ptr;
     while(fscanf(file, "%[^\n]\n", line) == 1) {
         data_ptr = strstr(line, "NAME: ");
         if(data_ptr != NULL) {
@@ -603,7 +603,7 @@ void modify_file(int atm_index, char *data_name, size_t data_len, char *modded_d
 
     for(int i = 0; i < atm_index + 1; i++) fscanf(file, "%*[^\n]\n");
 
-    char line_buffer[ATM_TOTAL_META_LEN + 39], *data_ptr;
+    char line_buffer[ATM_DATA_LEN + 39], *data_ptr;
     fscanf(file, "%[^\n]", line_buffer);
 
     if((data_ptr = strstr(line_buffer, data_name)) != NULL) {
@@ -679,7 +679,7 @@ void prnt_line(size_t len, char ch) {
     putchar('\n');
 }
 
-void prnt_bank_name() {
+void prnt_header() {
     prnt_line(UI_WIDTH, '=');
     printf("%*s%s\n", (UI_WIDTH - strlen(BANK_NAME)) / 2, "", BANK_NAME);
     prnt_line(UI_WIDTH, '=');
@@ -694,7 +694,7 @@ void prnt_menu() {
 
 void prnt_main_screen() {
     system("cls");
-    prnt_bank_name();
+    prnt_header();
     printf(" Welcome %s!\n", CUR_ATM->name);
     printf(" Account No: %s\n", CUR_ATM->account);
 

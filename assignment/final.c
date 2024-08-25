@@ -1,59 +1,29 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <conio.h>
-#include <time.h>
-#include <math.h>
+#include "utility.c"
 
-#define UI_WIDTH 50
-#define UI_PROMPT_MSG_LEN 23
-
-#define ATM_NAME_LEN 50
-#define ATM_ACCOUNT_LEN 14
-#define ATM_PIN_LEN 6
-#define ATM_BALANCE_LEN 18
-#define ATM_BALANCE_MIN_VALUE 50000
-#define ATM_TOTAL_META_LEN ATM_NAME_LEN + ATM_ACCOUNT_LEN + ATM_PIN_LEN + ATM_BALANCE_LEN
-
-typedef struct ATM
-{
-    char name[ATM_NAME_LEN + 1];
-    char account[ATM_ACCOUNT_LEN + 1];
-    char pin[ATM_PIN_LEN + 1];
-    long long int balance;
-} ATM;
-
-const char *BANK_NAME = "VTC Academy Bank";
-const char *FILE_NAME = "account-number.dat";
-
-int prnt_welcome_scr();
-int prnt_creating_scr();
-int prnt_login_scr();
-
-void prnt_ui_line(int double_line);
-void prnt_line(size_t len, int double_line);
-int unbuffered_input(char *target_buffer, size_t max_buffer_size, int mode, int is_censored, char first_ch);
-int choice_input(int min, int max);
-
-ATM *cur_atm, *atm_list;
-size_t atm_list_size = 0, atm_list_buffer_size = 10;
-int cur_atm_index;
+int welcome_scr();
+int creating_scr();
+int login_scr();
+int acc_mng_scr();
+int withdraw_scr();
+int transfer_scr();
+int pin_chng_scr();
 
 int main() {
     srand(time(NULL));
+
+    init_atm_list();
     
     while(1) {
-        switch(prnt_welcome_scr()) {
+        switch(welcome_scr()) {
             case 1:
-                while(prnt_creating_scr() != 0);
+                while(creating_scr() != 0);
                 continue;
-                break;
 
             case 2:
-                while(prnt_login_scr() != 0);
-                continue;
-                break;
+                switch(login_scr()) {
+                    case 0: while(acc_mng_scr() == 1);
+                    case -1: continue;
+                }
 
             case 0:
                 printf(" Ending program...");
@@ -63,16 +33,15 @@ int main() {
 }
 
 /**
- * @return 1: create acc, 2: login, 0: end
+ * @return  1: Create acc, 2: Login, 0: End
  */
-int prnt_welcome_scr() {
-    //system("cls");
-    prnt_ui_line(1);
-
+int welcome_scr() {
+    system("cls");
     char header[UI_WIDTH];
     sprintf(header, "Welcome to %s!", BANK_NAME);
-    printf("%*s\n", (UI_WIDTH + strlen(header)) / 2, header);
 
+    prnt_ui_line(1);
+    printf("%*s\n", (UI_WIDTH + strlen(header)) / 2, header);
     prnt_ui_line(1);
 
     printf(
@@ -80,210 +49,325 @@ int prnt_welcome_scr() {
         " 2. Login\n"
         " 0. End program\n"
     );
-
     prnt_ui_line(0);
 
     return choice_input(0, 2);
 }
 
-int validate_data(char *data, int data_len, int data_std_len, int is_exact_len) {
-    if(data_std_len == ATM_BALANCE_LEN && strtoll(data, NULL, 10) < ATM_BALANCE_MIN_VALUE) return 0;
-    return is_exact_len ? strlen(data) == data_len : (strlen(data) > 0 && strlen(data) <= data_len);
-}
-
-void random_account(char *name, char *account, char *pin, char *balance) {
-    static const char *last_names[] = {"Nguyen", "Tran", "Le", "Hoang", "Pham"};
-    static const char *middle_names[] = {"Gia", "Tra", "Thanh", "Van", "Thi"};
-    static const char *first_names[] = {"Anh", "Ha", "Linh", "Ly", "Duong"};
-
-    int lname_rand = rand() % (sizeof(last_names) / sizeof(last_names[0]));
-    int mname_rand = rand() % (sizeof(middle_names) / sizeof(middle_names[0]));
-    int fname_rand = rand() % (sizeof(first_names) / sizeof(first_names[0]));
-
-    sprintf(name, "%s %s %s", last_names[lname_rand], middle_names[mname_rand], first_names[fname_rand]);
-    sprintf(account, "%04d%04d%04d%02d", rand() % 10000, rand() % 10000, rand() % 10000, rand() % 100);
-    sprintf(pin, "%03d%03d", rand() % 1000, rand() % 1000);
-    sprintf(balance, "%d00000", rand() % 1000);
-}
-
 /**
- * @return  1: continue making acc, 0: done making acc
+ * @return  1: Continue , 0: Done
  */
-int prnt_creating_scr()
-{
+int creating_scr() {
     system("cls");
-    prnt_ui_line(1);
-    printf("%*s\n", (UI_WIDTH + strlen(BANK_NAME)) / 2, BANK_NAME);
-    prnt_ui_line(1);
+    prnt_header();
     printf(
         " Creating New Account...\n"
-        " Press ESC To Randomize.\n"
+        " Press ESC to Randomize.\n"
     );
     prnt_ui_line(0);
 
     char *prompts[2][4] = {
-        {" Input Account Name:", " Input Account No:", " Input Pin:", " Input Balance:"},
+        {" Enter Account Name:", " Enter Account No:", " Enter Pin:", " Enter Balance:"},
         {"name", "account", "pin", "balance"}
     };
-    int metadata[3][4] = {
-        {ATM_NAME_LEN, ATM_ACCOUNT_LEN, ATM_PIN_LEN, ATM_BALANCE_LEN},
+    int metadata[2][4] = {
         {2, 1, 1, 1},   // Mode
         {0, 1, 1, 0}    // Is exact len
     };
-    char atm_buffer[4][100] = {
-        "Nguyen Van A"
-    };
+    char atm_buffer[4][100], input[100], invalid_msg[100], ch;
+    int input_size;
+
     random_account(atm_buffer[0], atm_buffer[1], atm_buffer[2], atm_buffer[3]);
 
-    char input_buffer[100], invalid_msg[100], ch;
-    int input_size;
     for(int i = 0; i < 4; i++) {
         ch = 0;
 
         printf("%-*s", UI_PROMPT_MSG_LEN, prompts[0][i]);
         while(1) {
-            strcpy(input_buffer, atm_buffer[i]);
-            input_size = unbuffered_input(input_buffer, metadata[0][i], metadata[1][i], 0, ch);
+            strcpy(input, atm_buffer[i]);
 
-            if(input_size == -1) break;;
-            if(validate_data(input_buffer, input_size, metadata[0][i], metadata[2][i])) break;
+            if((input_size = unbuffered_input(input, DATA_LEN[i], metadata[1][i], 0, ch)) == -1) {
+                printf("%s", atm_buffer[i]);
+                break;
+            }
 
-            while(input_size-- > 0) printf("\b \b");
-            sprintf(invalid_msg, "Invalid %s", prompts[1][i]);
-            printf("%s", invalid_msg);
+            int valid = validate_data(input, input_size, i);
+            if(valid == 1) break;
+            if(valid == 0) sprintf(invalid_msg, "Invalid %s", prompts[1][i]);
+            if(valid == -1) sprintf(invalid_msg, "Duplicated %s", prompts[1][i]);
 
-            ch = _getch();
-            for(int j = 0; j < strlen(invalid_msg); j++) printf("\b \b");
+            prnt_invalid(invalid_msg, input_size, &ch);
         }
 
-        strcpy(atm_buffer[i], input_buffer);
+        strcpy(atm_buffer[i], input);
         putchar('\n');
     }
+    standardize_str(atm_buffer[0]);
 
     prnt_ui_line(0);
     printf(" Do you want to create ATM Card? (Y/N): ");
-    if((ch = _getch()) == 'Y' || ch == 'y') {
-        FILE *file = fopen(FILE_NAME, "a");
-
+    if(yes_no_input()) {
         ATM new_atm;
         strcpy(new_atm.name, atm_buffer[0]);
         strcpy(new_atm.account, atm_buffer[1]);
         strcpy(new_atm.pin, atm_buffer[2]);
         new_atm.balance = strtoll(atm_buffer[3], NULL, 10);
 
-        fprintf(file,
-            "NAME: %*s ACCOUNT: %*s PIN: %*s BALANCE: %*lld\n",
-            ATM_NAME_LEN, new_atm.name,
-            ATM_ACCOUNT_LEN, new_atm.account,
-            ATM_PIN_LEN, new_atm.pin,
-            ATM_BALANCE_LEN, new_atm.balance
-        );
+        atm_to_file(&new_atm);
+        atm_to_list(&new_atm);
 
-        fclose(file);
+        printf(" Created ATM Card successfully!");
+    }
+
+    prnt_ui_line(0);
+    printf(" Press ESC to return, any other key to continue making accounts.");
+    if(_getch() == 27) return 0;
+    return 1;
+}
+
+/**
+ * @return  -1: Cancelled, 1: Successfully logged in
+ */
+int login_scr() {
+    system("cls");
+    prnt_header();
+    printf(" Logging In...\n Press ESC to Cancel.\n");
+    prnt_ui_line(0);
+
+    char input[100], prompt[UI_PROMPT_MSG_LEN + 1], ch = 0;
+    int input_size;
+
+    sprintf(prompt, " Enter Account No:");
+    printf("%-*s", UI_PROMPT_MSG_LEN, prompt);
+    while(1) {
+        if((input_size = unbuffered_input(input, DATA_LEN[1], 1, 0, ch)) == -1) return -1;
+        if(input_size == DATA_LEN[1]) {
+            for(int i = 0; i < atm_list_size; i++) {
+                if(strcmp(input, atm_list[i].account) == 0) {
+                    cur_index = i;
+                    cur_atm = atm_list + i;
+                    break;
+                }
+            }
+            if(cur_index != -1) break;
+
+            prnt_invalid("Unregistered account", input_size, &ch);
+            continue;
+        }
+        
+        prnt_invalid("Invalid account", input_size, &ch);
     }
     putchar('\n');
-    
-    prnt_ui_line(0);
-    printf(" Do you want to create another account? (Y/N): ");
-    if((ch = _getch()) == 'Y' || ch == 'y') return 1;
-    putchar('\n');
+
+    ch = 0;
+    sprintf(prompt, " Enter PIN:");
+    printf("%-*s", UI_PROMPT_MSG_LEN, prompt);
+    if(enter_pin(input, &input_size, &ch, cur_atm->pin, 1) == -1) return -1;
 
     prnt_ui_line(0);
-    printf(" Press any key to return...\n");
+    printf(" Greetings, %s!\n Press any key to continue...", cur_atm->name);
     _getch();
     return 0;
 }
 
-int prnt_login_scr()
-{
-    return 0;
-}
-
-void prnt_ui_line(int double_line) {
-    prnt_line(UI_WIDTH, double_line);
-}
-
-void prnt_line(size_t len, int double_line) {
-    static char ch;
-    ch = double_line ? '=' : '-';
-    while(len-- > 0) putchar(ch);
-    putchar('\n');
-}
-
 /**
- * @brief   Take unbuffered input (instantly as user enters any key)
- * 
- * @param target_buffer     An allocated char* to store input
- * @param max_buffer_size   Maximum amount of characters to take from input
- * @param mode              type of input, 1: only 0-9, 2: only A-z, 3: both
- * @param is_censored       1: show entered character as '*'
- * @param first_ch          If !0, take this as first char instead
- * 
- * @return  Size of input, -1 if esc
+ * @return  -1: Cancelled, 0: Done, 1: Continue
  */
-int unbuffered_input(char *target_buffer, size_t max_buffer_size, int mode, int is_censored, char first_ch) {
-    size_t buffer_size = 0;
-    char ch, buffer[max_buffer_size + 1];
+int acc_mng_scr() {
+    char money_str[DATA_LEN[3] + 10];
 
-    while(1) {
-        if(first_ch != 0) {
-            ch = first_ch;
-            first_ch = 0;
-        } else ch = _getch();
+    system("cls");
+    prnt_header();
+    printf(" Account Name:   %s\n Account Number: %s\n", cur_atm->name, cur_atm->account);
+    prnt_ui_line(0);
 
-        if(ch == '\n' || ch == '\r') break;
-        switch(ch) {
-            case '\b':
-                if(buffer_size > 0) {
-                    printf("\b \b");
-                    buffer_size--;
-                }
-                break;
-
-            case 27:
-                while(buffer_size-- > 0) printf("\b \b");
-                printf("%s", target_buffer);
-                return -1;
-                break;
-
-            default:
-                switch(mode) {
-                    case 1: if(!isdigit(ch)) continue; break;
-                    case 2: if(!isalpha(ch)) continue; break;
-                    case 3: if(!isalnum(ch)) continue; break;
-                }
-                if(buffer_size < max_buffer_size) {
-                    buffer[buffer_size++] = ch;
-                    putchar(is_censored ? '*' : ch);
-                }
-                break;
-        }
-    }
+    printf(
+        " 1. Check Balance\n"
+        " 2. Withdraw Cash\n"
+        " 3. Transfer Money\n"
+        " 4. Change PIN\n"
+        " 0. Log Out\n"
+    );
+    prnt_ui_line(0);
     
-    buffer[buffer_size] = '\0';
-    strcpy(target_buffer, buffer);
-    return buffer_size;
+    switch(choice_input(0, 4)) {
+        case 1: 
+            prnt_ui_line(0);
+            money_to_str(money_str, cur_atm->balance);
+            printf(" Current Balance: %s\n Press any key to continue...", money_str);
+            _getch();
+            break;
+        case 2: while(withdraw_scr() == 1); break;
+        case 3: while(transfer_scr() == 1); break;
+        case 4: pin_chng_scr(); break;
+        case 0:
+            prnt_ui_line(0);
+            printf(" Logging out...\n Press any key to continue...");
+            _getch();
+            return 0;
+    }
+
+    return 1;
 }
 
 /**
- * @brief   Returns when input meets the condition, otherwise keep taking input. Prints "Your choice: " itself
+ * @return  -1: Cancelled, 0: Done, 1: Continue
  */
-int choice_input(int min, int max) {
-    char input_buffer[2] = "\0", ch = 0;
-    int choice, input_len;
+int withdraw_scr() {
+    long long int withdraw_amount = 0;
+    char input[100], ch = 0, money_str[DATA_LEN[3] + 10];
+    int input_size;
 
-    printf(" Your Choice: ");
-    while (1) {
-        input_len = unbuffered_input(input_buffer, 1, 1, 0, ch);
-        choice = input_len > 0 ? strtol(input_buffer, NULL, 10) : -1;
+    system("cls");
+    prnt_header();
+    printf(" Withdrawing Cash...\n Press ESC to Cancel.\n");
+    prnt_ui_line(0);
 
-        if(choice >= min && choice <= max) break;
+    money_to_str(money_str, cur_atm->balance);
+    printf(" Current Balance: %s\n", money_str);
+    prnt_ui_line(0);
+    
+    printf(
+        " 1.   100.000 VND\n"
+        " 2.   200.000 VND\n"
+        " 3.   500.000 VND\n"
+        " 4. 1.000.000 VND\n"
+        " 5. 2.000.000 VND\n"
+        " 6. Other amount\n"
+    );
+    prnt_ui_line(0);
 
-        printf("%sInvalid Choice", input_len > 0 ? "\b" : "");
-        ch = _getch();
-        for(int i = 0; i < strlen("Invalid Choice"); i++) printf("\b \b");
+    switch(choice_input(1, 6)) {
+        case 1: withdraw_amount = 100000; break;
+        case 2: withdraw_amount = 200000; break;
+        case 3: withdraw_amount = 500000; break;
+        case 4: withdraw_amount = 1000000; break;
+        case 5: withdraw_amount = 2000000; break;
+        case 6:
+            if((withdraw_amount = get_money(input, &input_size, &ch)) == -1) return -1;
+            break;
+        case -1: return -1;
+    }
+
+    money_to_str(money_str, withdraw_amount);
+    printf(" Withdraw amount: %s\n Please confirm. (Y/N): ", money_str);
+
+    if(yes_no_input()) {
+        printf(" Withdrawed successfully %s!\n", money_str);
+        cur_atm->balance -= withdraw_amount;
+
+        prnt_ui_line(0);
+        printf(" Do you want to print receipt? (Y/N): ");
+        if(yes_no_input()) {
+            cur_atm->balance -= 1100;
+            receipt(withdraw_amount);
+        }
+
+        sprintf(money_str, "%-*lld", DATA_LEN[3], cur_atm->balance);
+        modify_file(cur_index, 3, money_str);
+    }
+    else printf(" Cancelled transaction.\n");
+
+    prnt_ui_line(0);
+    printf(" Press ESC to return, any other key to continue withdrawing.");
+    if(_getch() == 27) return 0;
+    return 1;
+}
+
+/**
+ * @return  -1: Cancelled, 0: Done, 1: Continue
+ */
+int transfer_scr() {
+    long long int transfer_amount = 0;
+    char input[100], ch = 0, money_str[DATA_LEN[3] + 10];
+    int input_size, target_index = -1;
+    ATM *target_atm;
+
+    system("cls");
+    prnt_header();
+    printf(" Transfering Money...\n Press ESC to Cancel.\n");
+    prnt_ui_line(0);
+
+    money_to_str(money_str, cur_atm->balance);
+    printf(" Current Balance: %s\n", money_str);
+    prnt_ui_line(0);
+
+    printf("%-*s", UI_PROMPT_MSG_LEN, " Enter Account No:");
+    while(1) {
+        if((input_size = unbuffered_input(input, DATA_LEN[1], 1, 0, ch)) == -1) return -1;
+        if(input_size == DATA_LEN[1]) {
+            for(int i = 0; i < atm_list_size; i++) {
+                if(strcmp(input, atm_list[i].account) == 0 && strcmp(input, cur_atm->account) != 0) {
+                    target_index = i;
+                    target_atm = atm_list + i;
+                    break;
+                }
+            }
+            if(target_index != -1) break;
+        }
+        
+        // for(int i = 0; i < strlen(input); i++) printf("\b \b");
+        prnt_invalid("Invalid account", input_size, &ch);
     }
     putchar('\n');
+    printf(
+        "%-*s%s\n"
+        " Please Confirm Target Account. (Y/N): ",
+        UI_PROMPT_MSG_LEN, " Account Name:", target_atm->name
+    );
+    if(!yes_no_input()) return 1;
 
-    return choice;
+    if((transfer_amount = get_money(input, &input_size, &ch)) == -1) return -1;
+    prnt_ui_line(0);
+
+    money_to_str(money_str, transfer_amount);
+    printf(" Transfer amount: %s\n Please confirm. (Y/N): ", money_str);
+
+    if(yes_no_input()) {
+        printf(" Transferred successfully %s!\n", money_str);
+        cur_atm->balance -= transfer_amount;
+        target_atm->balance += transfer_amount;
+
+        sprintf(money_str, "%-*lld", DATA_LEN[3], cur_atm->balance);
+        modify_file(cur_index, 3, money_str);
+        sprintf(money_str, "%-*lld", DATA_LEN[3], target_atm->balance);
+        modify_file(target_index, 3, money_str);
+    }
+    else printf(" Cancelled transaction.\n");
+
+    prnt_ui_line(0);
+    printf(" Press ESC to return, any other key to continue withdrawing.");
+    if(_getch() == 27) return 0;
+    return 1;
+}
+
+/**
+ * @return  -1: Cancelled, 0: Done
+ */
+int pin_chng_scr() {
+    char new_pin[DATA_LEN[2] + 1], input[100], ch;
+    int input_size = 0;
+
+    system("cls");
+    prnt_header();
+    printf(" Changing PIN...\n Press ESC to cancel.\n");
+    prnt_ui_line(0);
+
+    printf("%-*s", UI_PROMPT_MSG_LEN, " Enter Current PIN:");
+    if(enter_pin(input, &input_size, &ch, cur_atm->pin, 1) == -1) return -1;
+
+    printf("%-*s", UI_PROMPT_MSG_LEN, " Enter New PIN:");
+    if(enter_pin(input, &input_size, &ch, NULL, 0) == -1) return -1;
+    strcpy(new_pin, input);
+
+    printf("%-*s", UI_PROMPT_MSG_LEN, " Re-enter New PIN:");
+    if(enter_pin(input, &input_size, &ch, new_pin, 0) == -1) return -1;
+    strcpy(cur_atm->pin, new_pin);
+    modify_file(cur_index, 2, cur_atm->pin);
+
+    prnt_ui_line(0);
+    printf(" Changed PIN successfully!\n Press any key to return...");
+    _getch();
+
+    return 0;
 }
