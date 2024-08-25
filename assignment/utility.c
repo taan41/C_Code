@@ -57,22 +57,23 @@ typedef struct ATM
 void init_atm_list();
 void atm_to_file(ATM *atm);
 void atm_to_list(ATM *atm);
-int validate_data(char *data, int data_size, int data_type);
+void modify_file(int atm_index, int data_type, char *modified_data);
 void random_account(char *name, char *account, char *pin, char *balance);
-long long int get_money(char *input, int *input_size, char *ch);
+int validate_data(char *data, int data_size, int data_type);
 int enter_pin(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored);
+long long int get_money(char *input, int *input_size, char *ch);
 
 void prnt_line(size_t len, int double_line);
 void prnt_ui_line(int double_line);
 void prnt_header();
 void prnt_invalid(char *msg, int input_size, char *ch);
 
-int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_censored, char first_ch);
-int choice_input(int min, int max);
-int yes_no_input();
 void standardize_str(char *str);
 void money_to_str(char *target_money_str, long long int money);
 void receipt(long long int withdraw_amount);
+int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_censored, char first_ch);
+int choice_input(int min, int max);
+int yes_no_input();
 
 ATM *cur_atm, *atm_list = NULL;
 size_t atm_list_size = 0, atm_list_buffer_size = 10;
@@ -134,17 +135,6 @@ void atm_to_list(ATM *atm) {
 }
 
 /**
- * @param data_type    0: name, 1: account, 2: pin, 3: balance
- * 
- * @return  0: invalid, 1: valid (balance > min), -1: duped acc
- */
-int validate_data(char *data, int data_size, int data_type) {
-    if(data_type == 1) for(int i = 0; i < atm_list_size; i++) if(strcmp(data, atm_list[i].account) == 0) return -1;
-    if(data_type == 3 && strtoll(data, NULL, 10) < ATM_BALANCE_MIN_VALUE) return 0;
-    return (data_type == 1 || data_type == 2) ? data_size == DATA_LEN[data_type] : (data_size > 0 && data_size <= DATA_LEN[data_type]);
-}
-
-/**
  * @brief   Change indexed account's one specific data in save file
  * 
  * @param atm_index     Account index
@@ -183,33 +173,14 @@ void random_account(char *name, char *account, char *pin, char *balance) {
 }
 
 /**
- * @brief   Withdraw money from cur_atm->balance, keep taking input until valid amount or ESC entered
+ * @param data_type    0: name, 1: account, 2: pin, 3: balance
  * 
- * @return  Withdraw amount, OP_CANCELLED if ESC
+ * @return  0: invalid, 1: valid (balance > min), -1: duped acc
  */
-long long int get_money(char *input, int *input_size, char *ch) {
-    long long int withdraw_amount;
-    *ch = 0;
-
-    printf(" Enter Money Ammount: ");
-    while(1) {
-        if((*input_size = unbuffered_input(input, DATA_LEN[3], 1, 0, *ch)) == -1) return OP_CANCELLED;
-        if(*input_size > 0 && *input_size <= DATA_LEN[3]) {
-            if(strtoll(input, NULL, 10) > 0 && strtoll(input, NULL, 10) <= cur_atm->balance) {
-                withdraw_amount = strtoll(input, NULL, 10);
-                break;
-            }
-            else {
-                prnt_invalid("Not enough money in account", *input_size, ch);
-                continue;
-            }
-        }
-
-        prnt_invalid("Invalid ammount", *input_size, ch);
-    }
-    putchar('\n');
-
-    return withdraw_amount;
+int validate_data(char *data, int data_size, int data_type) {
+    if(data_type == 1) for(int i = 0; i < atm_list_size; i++) if(strcmp(data, atm_list[i].account) == 0) return -1;
+    if(data_type == 3 && strtoll(data, NULL, 10) < ATM_BALANCE_MIN_VALUE) return 0;
+    return (data_type == 1 || data_type == 2) ? data_size == DATA_LEN[data_type] : (data_size > 0 && data_size <= DATA_LEN[data_type]);
 }
 
 /**
@@ -241,6 +212,36 @@ int enter_pin(char *input, int *input_size, char *ch, char *pin_to_check, int is
     return OP_FINISH;
 }
 
+/**
+ * @brief   Withdraw money from cur_atm->balance, keep taking input until valid amount or ESC entered
+ * 
+ * @return  Withdraw amount, OP_CANCELLED if ESC
+ */
+long long int get_money(char *input, int *input_size, char *ch) {
+    long long int withdraw_amount;
+    *ch = 0;
+
+    printf(" Enter Money Ammount: ");
+    while(1) {
+        if((*input_size = unbuffered_input(input, DATA_LEN[3], 1, 0, *ch)) == -1) return OP_CANCELLED;
+        if(*input_size > 0 && *input_size <= DATA_LEN[3]) {
+            if(strtoll(input, NULL, 10) > 0 && strtoll(input, NULL, 10) <= cur_atm->balance) {
+                withdraw_amount = strtoll(input, NULL, 10);
+                break;
+            }
+            else {
+                prnt_invalid("Not enough money in account", *input_size, ch);
+                continue;
+            }
+        }
+
+        prnt_invalid("Invalid ammount", *input_size, ch);
+    }
+    putchar('\n');
+
+    return withdraw_amount;
+}
+
 void prnt_line(size_t len, int double_line) {
     static char ch;
     ch = double_line ? '=' : '-';
@@ -263,108 +264,6 @@ void prnt_header() {
     prnt_ui_line(1);
     printf("%*s\n", (UI_WIDTH + strlen(BANK_NAME)) / 2, BANK_NAME);
     prnt_ui_line(1);
-}
-
-/**
- * @brief   Process unbuffered input (instantly as user enters any key)
- * 
- * @param target_buffer     An allocated char* to store input
- * @param max_size          Maximum amount of characters to take from input
- * @param input_mode        Type of input, 1: only 0-9, 2: only A-z, 3: both
- * @param is_censored       If 1: show entered character as '*'
- * @param first_ch          If !0: take this as first char
- * 
- * @return  Size of input, OP_CANCELLED if ESC
- */
-int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_censored, char first_ch) {
-    int input_size = 0;
-    char ch, input[max_size + 1];
-
-    while(1) {
-        if(first_ch != 0) {
-            ch = first_ch;
-            first_ch = 0;
-        } else ch = _getch();
-
-        if(ch == '\n' || ch == '\r') break;
-        switch(ch) {
-            case '\b':
-                if(input_size > 0) {
-                    printf("\b \b");
-                    input_size--;
-                }
-                break;
-
-            case 27:
-                while(input_size-- > 0) printf("\b \b");
-                return OP_CANCELLED;
-                break;
-
-            default:
-                switch(input_mode) {
-                    case 1: if(!isdigit(ch)) continue; break;
-                    case 2: if(!isalpha(ch) && !(isspace(ch) && input_size > 0)) continue; break;
-                    case 3: if(!isalnum(ch) && !(isspace(ch) && input_size > 0)) continue; break;
-                    default: continue; break;
-                }
-                if(input_size < max_size) {
-                    input[input_size++] = ch;
-                    putchar(is_censored ? '*' : ch);
-                }
-                break;
-        }
-    }
-    
-    input[input_size] = '\0';
-    strcpy(target_buffer, input);
-    return input_size;
-}
-
-/**
- * @brief   Keep taking input until range meet or ESC entered. Print "Your choice: " automatically
- * 
- * @return  Min to max, OP_CANCELLED if ESC
- */
-int choice_input(int min, int max) {
-    char input[2] = "\0", ch = 0;
-    int choice, input_len;
-
-    printf(" Your choice: ");
-    while (1) {
-        input_len = unbuffered_input(input, 1, 1, 0, ch);
-        choice = input_len > 0 ? strtol(input, NULL, 10) : -1;
-
-        if(input_len == -1) return OP_CANCELLED;
-        if(choice >= min && choice <= max) break;
-
-        prnt_invalid("Invalid choice", input_len, &ch);
-    }
-    putchar('\n');
-
-    return choice;
-}
-
-/**
- * @brief   Keep taking input until 'Y', 'y', 'N', 'n', ESC entered
- * 
- * @return  1: yes, 0: no & ESC
- */
-int yes_no_input() {
-    int input_size;
-    char input[2];
-    while(1) {
-        input[0] = '\0';
-        input_size = unbuffered_input(input, 1, 2, 0, 0);
-        if(input[0] == 'Y' || input[0] == 'y') {
-            putchar('\n');
-            return 1;
-        }
-        if(input[0] == 'N' || input[0] == 'n' || input_size == -1) {
-            putchar('\n');
-            return 0;
-        }
-        printf("\b %s", input_size > 0 ? "\b" : "");
-    }
 }
 
 /**
@@ -514,4 +413,106 @@ void receipt(long long int withdraw_amount) {
 
 void free_everything() {
     free(atm_list);
+}
+
+/**
+ * @brief   Process unbuffered input (instantly as user enters any key)
+ * 
+ * @param target_buffer     An allocated char* to store input
+ * @param max_size          Maximum amount of characters to take from input
+ * @param input_mode        Type of input, 1: only 0-9, 2: only A-z, 3: both
+ * @param is_censored       If 1: show entered character as '*'
+ * @param first_ch          If !0: take this as first char
+ * 
+ * @return  Size of input, OP_CANCELLED if ESC
+ */
+int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_censored, char first_ch) {
+    int input_size = 0;
+    char ch, input[max_size + 1];
+
+    while(1) {
+        if(first_ch != 0) {
+            ch = first_ch;
+            first_ch = 0;
+        } else ch = _getch();
+
+        if(ch == '\n' || ch == '\r') break;
+        switch(ch) {
+            case '\b':
+                if(input_size > 0) {
+                    printf("\b \b");
+                    input_size--;
+                }
+                break;
+
+            case 27:
+                while(input_size-- > 0) printf("\b \b");
+                return OP_CANCELLED;
+                break;
+
+            default:
+                switch(input_mode) {
+                    case 1: if(!isdigit(ch)) continue; break;
+                    case 2: if(!isalpha(ch) && !(isspace(ch) && input_size > 0)) continue; break;
+                    case 3: if(!isalnum(ch) && !(isspace(ch) && input_size > 0)) continue; break;
+                    default: continue; break;
+                }
+                if(input_size < max_size) {
+                    input[input_size++] = ch;
+                    putchar(is_censored ? '*' : ch);
+                }
+                break;
+        }
+    }
+    
+    input[input_size] = '\0';
+    strcpy(target_buffer, input);
+    return input_size;
+}
+
+/**
+ * @brief   Keep taking input until range meet or ESC entered. Print "Your choice: " automatically
+ * 
+ * @return  Min to max, OP_CANCELLED if ESC
+ */
+int choice_input(int min, int max) {
+    char input[2] = "\0", ch = 0;
+    int choice, input_len;
+
+    printf(" Your choice: ");
+    while (1) {
+        input_len = unbuffered_input(input, 1, 1, 0, ch);
+        choice = input_len > 0 ? strtol(input, NULL, 10) : -1;
+
+        if(input_len == -1) return OP_CANCELLED;
+        if(choice >= min && choice <= max) break;
+
+        prnt_invalid("Invalid choice", input_len, &ch);
+    }
+    putchar('\n');
+
+    return choice;
+}
+
+/**
+ * @brief   Keep taking input until 'Y', 'y', 'N', 'n', ESC entered
+ * 
+ * @return  1: yes, 0: no & ESC
+ */
+int yes_no_input() {
+    int input_size;
+    char input[2];
+    while(1) {
+        input[0] = '\0';
+        input_size = unbuffered_input(input, 1, 2, 0, 0);
+        if(input[0] == 'Y' || input[0] == 'y') {
+            putchar('\n');
+            return 1;
+        }
+        if(input[0] == 'N' || input[0] == 'n' || input_size == -1) {
+            putchar('\n');
+            return 0;
+        }
+        printf("\b %s", input_size > 0 ? "\b" : "");
+    }
 }
