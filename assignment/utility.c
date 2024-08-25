@@ -46,8 +46,7 @@ const int DATA_LEN[4] = {ATM_NAME_LEN, ATM_ACCOUNT_LEN, ATM_PIN_LEN, ATM_BALANCE
 const int SPACE_AFTER_TAG = 1;
 #define SAVE_LEN TOTAL_DATA_LEN + DATA_TAG_LEN + 3 + 4 * SPACE_AFTER_TAG
 
-typedef struct ATM
-{
+typedef struct ATM {
     char name[ATM_NAME_LEN + 1];
     char account[ATM_ACCOUNT_LEN + 1];
     char pin[ATM_PIN_LEN + 1];
