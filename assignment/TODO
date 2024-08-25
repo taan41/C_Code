@@ -1,6 +1,16 @@
-strtoll check if all is number instead of adding each digit -> accept only digit
-#define to add params info into struct -> no
-money to double -> no
-metadata struct -> too long
-overhaul
-custom header -> nah
+# TODO 
+
+## Features
+- strtoll check if all is number instead of adding each digit -> accept only digit
+- add params info into struct -> no
+- metadata struct -> too long
+- money to double -> nah
+- custom header -> include extra .c
+
+## Bugs & Problems
+- withdraw 0 -> done
+
+## Refactoring
+- overhaul -> done
+- finishing -> 98% (?)
+- TODO file -> done
