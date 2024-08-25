@@ -157,9 +157,9 @@ void modify_file(int atm_index, int data_type, char *modified_data) {
 }
 
 void random_account(char *name, char *account, char *pin, char *balance) {
-    static const char *last_names[] = {"Nguyen", "Tran", "Le", "Hoang", "Pham"};
-    static const char *middle_names[] = {"Gia", "Tra", "Thanh", "Van", "Thi"};
-    static const char *first_names[] = {"Anh", "Ha", "Linh", "Ly", "Duong"};
+    static const char *last_names[] = {"Nguyen", "Tran", "Le", "Hoang", "Pham", "Dang", "Ngo"};
+    static const char *middle_names[] = {"Gia", "Tra", "Thanh", "Van", "Thi", "Duong", "Linh"};
+    static const char *first_names[] = {"Anh", "Ha", "Hoa", "Ly", "Giang", "Kim", "Tu", "Linh"};
 
     int lname_rand = rand() % (sizeof(last_names) / sizeof(last_names[0]));
     int mname_rand = rand() % (sizeof(middle_names) / sizeof(middle_names[0]));
