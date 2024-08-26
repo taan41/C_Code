@@ -47,11 +47,8 @@ int welcome_scr() {
     printf("%*s\n", (UI_WIDTH + strlen(header)) / 2, header);
     prnt_ui_line(1);
 
-    printf(
-        " 1. Create new account\n"
-        " 2. Login\n"
-        " 0. End program\n"
-    );
+    printf("%s\n", " 1. Create New Account");
+    // printf(" 1. Create New Account\n 2. Login\n 0. End Program\n");
     prnt_ui_line(0);
 
     return choice_input(0, 2);
