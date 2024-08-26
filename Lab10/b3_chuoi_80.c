@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 void std_str(char *str) {
     char *ptr = str;
@@ -44,10 +45,11 @@ void count_ch(char *str) {
 
 int main() {
     char str[81];
+    system("cls");
     printf("Nhap chuoi ky tu: ");
     scanf("%80[^\n]", str);
 
-    count_str(str);
+    count_ch(str);
     std_str(str);
 
     return 0;
