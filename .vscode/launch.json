@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "final",
+            "name": "Final",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "final.exe",
+            "program": "${workspaceFolder}\\assignment\\final.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}\\assignment",
@@ -20,10 +20,10 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+            "program": "${workspaceFolder}\\${fileBasenameNoExtension}.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "integratedTerminal",
             "preLaunchTask": "Build active file"

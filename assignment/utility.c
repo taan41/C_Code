@@ -437,7 +437,13 @@ int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_c
 
         if(ch == '\n' || ch == '\r') break;
         switch(ch) {
-            case '^':
+            case 23:
+                while(input_size > 0) {
+                    printf("\b \b");
+                    input_size--;
+                }
+                break;
+
             case '\b':
                 if(input_size > 0) {
                     printf("\b \b");

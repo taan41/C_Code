@@ -9,10 +9,10 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${workspaceFolder}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$gcc"
@@ -29,10 +29,13 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
+                "${workspaceFolder}\\assignment\\final.c",
                 "-o",
-                "assignment\\final.exe"
+                "${workspaceFolder}\\assignment\\final.exe"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}\\assignment"
+            },
             "problemMatcher": [
                 "$gcc"
             ],
