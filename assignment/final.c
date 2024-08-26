@@ -47,8 +47,11 @@ int welcome_scr() {
     printf("%*s\n", (UI_WIDTH + strlen(header)) / 2, header);
     prnt_ui_line(1);
 
-    printf("%s\n", " 1. Create New Account");
-    // printf(" 1. Create New Account\n 2. Login\n 0. End Program\n");
+    printf(
+        " 1. Create New Account"
+        "\n 2. Login"
+        "\n 0. End Program\n"
+    );
     prnt_ui_line(0);
 
     return choice_input(0, 2);
@@ -70,10 +73,8 @@ int creating_scr() {
         {" Enter Account Name:", " Enter Account No:", " Enter Pin:", " Enter Balance:"},
         {"name", "account", "pin", "balance"}
     };
-    int metadata[2][4] = {
-        {2, 1, 1, 1},   // Input mode
-        {0, 1, 1, 0}    // Is exact len
-    };
+    int input_mode[4] = {2, 1, 1, 1};
+
     char atm_buffer[4][100], input[100], invalid_msg[100], ch;
     int input_size, changed;
 
@@ -87,13 +88,13 @@ int creating_scr() {
         while(1) {
             strcpy(input, atm_buffer[i]);
 
-            if((input_size = unbuffered_input(input, DATA_LEN[i], metadata[0][i], 0, ch)) == OP_CANCELLED) {
+            if((input_size = unbuffered_input(input, DATA_LEN[i], input_mode[i], 0, ch)) == OP_CANCELLED) {
                 printf("%s", atm_buffer[i]);
                 changed = 0;
                 break;
             }
 
-            int valid = validate_data(input, input_size, i);
+            int valid = validate_created_data(input, input_size, i);
             if(valid == 1) break;
             if(valid == 0) sprintf(invalid_msg, "Invalid %s", prompts[1][i]);
             if(valid == -1) sprintf(invalid_msg, "Duplicated %s", prompts[1][i]);

@@ -58,7 +58,7 @@ void atm_to_file(ATM *atm);
 void atm_to_list(ATM *atm);
 void modify_file(int atm_index, int data_type, char *modified_data);
 void random_account(char *name, char *account, char *pin, char *balance);
-int validate_data(char *data, int data_size, int data_type);
+int validate_created_data(char *data, int data_size, int data_type);
 int enter_pin(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored);
 long long int get_money(char *input, int *input_size, char *ch);
 
@@ -176,7 +176,7 @@ void random_account(char *name, char *account, char *pin, char *balance) {
  * 
  * @return  0: invalid, 1: valid (balance > min), -1: duped acc
  */
-int validate_data(char *data, int data_size, int data_type) {
+int validate_created_data(char *data, int data_size, int data_type) {
     if(data_type == 1) for(int i = 0; i < atm_list_size; i++) if(strcmp(data, atm_list[i].account) == 0) return -1;
     if(data_type == 3 && strtoll(data, NULL, 10) < ATM_BALANCE_MIN_VALUE) return 0;
     return (data_type == 1 || data_type == 2) ? data_size == DATA_LEN[data_type] : (data_size > 0 && data_size <= DATA_LEN[data_type]);
