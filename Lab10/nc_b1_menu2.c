@@ -17,11 +17,11 @@ void prnt_line(size_t len);
 void prnt_menu();
 void flush();
 
-char **STUDENTS;
-size_t STD_SIZE = 0, BUFFER_SIZE = 10;
+char **students;
+size_t students_size = 0, buffer_size = 10;
 
 int main() {
-    STUDENTS = malloc(BUFFER_SIZE * sizeof(char *));
+    students = malloc(buffer_size * sizeof(char *));
 
     int menu_choice;
 
@@ -69,9 +69,9 @@ int main() {
 }
 
 void students_add() {
-    if(STD_SIZE >= BUFFER_SIZE) {
-        BUFFER_SIZE *= 2;
-        STUDENTS = realloc(STUDENTS, BUFFER_SIZE * sizeof(char *));
+    if(students_size >= buffer_size) {
+        buffer_size *= 2;
+        students = realloc(students, buffer_size * sizeof(char *));
     }
 
     int add_amount;
@@ -80,15 +80,15 @@ void students_add() {
     flush();
 
     while(add_amount-- > 0) {
-        STUDENTS[STD_SIZE] = malloc((STUDENT_NAME_LEN + 1) * sizeof(char));
+        students[students_size] = malloc((STUDENT_NAME_LEN + 1) * sizeof(char));
         printf("Nhap ten hoc vien: ");
-        fgets(STUDENTS[STD_SIZE], STUDENT_NAME_LEN, stdin);
+        fgets(students[students_size], STUDENT_NAME_LEN, stdin);
 
-        if(strchr(STUDENTS[STD_SIZE], '\n')) *strchr(STUDENTS[STD_SIZE], '\n') = 0;
-        else STUDENTS[STD_SIZE][STUDENT_NAME_LEN] = 0;
+        if(strchr(students[students_size], '\n')) *strchr(students[students_size], '\n') = 0;
+        else students[students_size][STUDENT_NAME_LEN] = 0;
 
-        printf("Da them %s!\n", STUDENTS[STD_SIZE]);
-        STD_SIZE++;
+        printf("Da them %s!\n", students[students_size]);
+        students_size++;
     }
 
     prnt_line(MENU_WIDTH);
@@ -110,9 +110,9 @@ void students_find() {
 
     printf("Ket qua tim kiem:\n");
     int count = 0;
-    for(int i = 0; i < STD_SIZE; i++) {
-        if(strstr(lower_str(STUDENTS[i]), lower_str(input)))
-            printf(" %d. %s\n", ++count, STUDENTS[i]);
+    for(int i = 0; i < students_size; i++) {
+        if(strstr(lower_str(students[i]), lower_str(input)))
+            printf(" %d. %s\n", ++count, students[i]);
     }
     if(!count) printf("Khong tim thay ten hoc vien nao chua '%s'.\n", input);
 
@@ -151,10 +151,10 @@ void students_std() {
     );
     prnt_line(width);
 
-    for(int i = 0; i < STD_SIZE; i++) {
-        printf("| %03d | %-*s | ", i + 1, STUDENT_NAME_LEN, STUDENTS[i]);
-        standardize_str(STUDENTS[i]);
-        printf("%-*s |\n", STUDENT_NAME_LEN, STUDENTS[i]);
+    for(int i = 0; i < students_size; i++) {
+        printf("| %03d | %-*s | ", i + 1, STUDENT_NAME_LEN, students[i]);
+        standardize_str(students[i]);
+        printf("%-*s |\n", STUDENT_NAME_LEN, students[i]);
     }
 
     prnt_line(width);
@@ -168,8 +168,8 @@ void students_print() {
     printf("| STT | %*s%*s |\n", pad, "TEN HOC VIEN", STUDENT_NAME_LEN - pad, "");
     prnt_line(width);
 
-    for(int i = 0; i < STD_SIZE; i++) {
-        printf("| %03d | %-*s |\n", i + 1, STUDENT_NAME_LEN, STUDENTS[i]);
+    for(int i = 0; i < students_size; i++) {
+        printf("| %03d | %-*s |\n", i + 1, STUDENT_NAME_LEN, students[i]);
     }
 
     prnt_line(width);

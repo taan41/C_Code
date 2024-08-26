@@ -6,8 +6,8 @@
 #include <conio.h>
 #include <math.h>
 
+int length = 30;
+
 int main() {
-    printf("Something\n");
-    int ch = getchar();
-    printf("%c\n", ch);
+    printf("| %d | %-*s |\n", 1, length, "san pham");
 }

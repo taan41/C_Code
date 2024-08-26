@@ -2,56 +2,63 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PROD_NAME_LENGTH 30
-
 struct Product{
-    char name[PROD_NAME_LENGTH];
+    char name[30];
     int quantity;
-    int price;
+    float price;
 };
 
+struct Product products[5];
+
+void input_products();
+void prnt_products();
 
 int main() {
-    struct Product products[5];
-    
-    char buffer;
+    input_products();
+    prnt_products();
+
+    return 0;
+}
+
+void input_products() {
     for(int i = 0; i < 5; i++) {
         printf("Nhap ten san pham %d: ", i + 1);
-        fgets(products[i].name, PROD_NAME_LENGTH, stdin);
-        products[i].name[strcspn(products[i].name, "\n")] = '\0';
+        scanf("%30[^\n]", products[i].name);
         
         printf("Nhap so luong san pham %d: ", i + 1);
-        scanf("%d", &(products[i].quantity));
+        scanf("%d", &products[i].quantity);
         
-        printf("Nhap gia san pham %d: ", i + 1);
-        scanf("%d", &(products[i].price));
+        printf("Nhap gia san pham %d ($): ", i + 1);
+        scanf("%f", &products[i].price);
         
-        while((buffer = getchar()) != '\n' && buffer != EOF);
+        putchar('\n');
+        while(getchar() != '\n');
     }
-    
+}
+
+void prnt_products() {
     printf(
         "-------------------------------------------------------------------------------\n"
         "DANH MUC SAN PHAM\n"
         "-------------------------------------------------------------------------------\n"
         "|STT| %-*s | So luong | Don gia ($) | Tong tien ($) |\n"
         "-------------------------------------------------------------------------------\n",
-        PROD_NAME_LENGTH, "Ten san pham"
+        30, "Ten san pham"
     );
     
-    int total = 0;
+    float total = 0;
     for(int i = 0; i < 5; i++) {
         printf(
-            "| %d | %-*s | %8d | %11d | %13d |\n",
-            i + 1, PROD_NAME_LENGTH,
-            products[i].name, products[i].quantity, products[i].price,
+            "| %d | %-*s | %8d | %11.2f | %13.2f |\n",
+            i + 1,
+            30, products[i].name,
+            products[i].quantity,
+            products[i].price,
             products[i].quantity * products[i].price
         );
         total += products[i].quantity * products[i].price;
     }
     printf("-------------------------------------------------------------------------------\n");
-    
-    printf("|%76d |\n", total);
-    
+    printf("| %75.2f |\n", total);
     printf("-------------------------------------------------------------------------------\n");
-    return 0;
 }
