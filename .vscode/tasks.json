@@ -9,10 +9,10 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${workspaceFolder}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${fileDirname}"
             },
             "problemMatcher": [
                 "$gcc"
@@ -33,9 +33,6 @@
                 "-o",
                 "${workspaceFolder}\\assignment\\final.exe"
             ],
-            "options": {
-                "cwd": "${workspaceFolder}\\assignment"
-            },
             "problemMatcher": [
                 "$gcc"
             ],
