@@ -42,9 +42,7 @@ const char *DATA_TAG[4] = {ATM_NAME_TAG, ATM_ACCOUNT_TAG, ATM_PIN_TAG, ATM_BALAN
 
 const int DATA_LEN[4] = {ATM_NAME_LEN, ATM_ACCOUNT_LEN, ATM_PIN_LEN, ATM_BALANCE_LEN};
 #define TOTAL_DATA_LEN DATA_LEN[0] + DATA_LEN[1] + DATA_LEN[2] + DATA_LEN[3]
-
-const int SPACE_AFTER_TAG = 1;
-#define SAVE_LEN TOTAL_DATA_LEN + DATA_TAG_LEN + 3 + 4 * SPACE_AFTER_TAG
+#define SAVE_LEN TOTAL_DATA_LEN + DATA_TAG_LEN + 7
 
 typedef struct ATM {
     char name[ATM_NAME_LEN + 1];
@@ -90,11 +88,11 @@ void init_atm_list() {
     ATM temp_atm;
 
     char format[60], line[150], buffer[100];
-    sprintf(format, "%s%*s%%%d[^\n] %s%*s%%%ds %s%*s%%%ds %s%*s%%%d[^\n]\n",
-        DATA_TAG[0], SPACE_AFTER_TAG, "", DATA_LEN[0],
-        DATA_TAG[1], SPACE_AFTER_TAG, "", DATA_LEN[1],
-        DATA_TAG[2], SPACE_AFTER_TAG, "", DATA_LEN[2],
-        DATA_TAG[3], SPACE_AFTER_TAG, "", DATA_LEN[3]
+    sprintf(format, "%s %%%d[^\n] %s %%%ds %s %%%ds %s %%%d[^\n]\n",
+        DATA_TAG[0], DATA_LEN[0],
+        DATA_TAG[1], DATA_LEN[1],
+        DATA_TAG[2], DATA_LEN[2],
+        DATA_TAG[3], DATA_LEN[3]
     );
     while(fscanf(file, format, temp_atm.name, temp_atm.account, temp_atm.pin, buffer) == 4) {
         char *trim_ptr = temp_atm.name + ATM_NAME_LEN;
@@ -111,11 +109,11 @@ void atm_to_file(ATM *atm) {
     FILE *file = fopen(FILE_NAME, "a");
 
     fprintf(file,
-        "%s%*s%-*s %s%*s%*s %s%*s%*s %s%*s%-*lld\n",
-        DATA_TAG[0], SPACE_AFTER_TAG, "", DATA_LEN[0], atm->name,
-        DATA_TAG[1], SPACE_AFTER_TAG, "", DATA_LEN[1], atm->account,
-        DATA_TAG[2], SPACE_AFTER_TAG, "", DATA_LEN[2], atm->pin,
-        DATA_TAG[3], SPACE_AFTER_TAG, "", DATA_LEN[3], atm->balance
+        "%s %-*s %s %*s %s %*s %s %-*lld\n",
+        DATA_TAG[0], DATA_LEN[0], atm->name,
+        DATA_TAG[1], DATA_LEN[1], atm->account,
+        DATA_TAG[2], DATA_LEN[2], atm->pin,
+        DATA_TAG[3], DATA_LEN[3], atm->balance
     );
 
     fclose(file);
@@ -149,7 +147,7 @@ void modify_file(int atm_index, int data_type, char *modified_data) {
     fscanf(file, "%[^\n]", line);
 
     if((tag_ptr = strstr(line, DATA_TAG[data_type])) != NULL) {
-        fseek(file, - strlen(line) + (tag_ptr - line) + strlen(DATA_TAG[data_type]) + SPACE_AFTER_TAG, SEEK_CUR);
+        fseek(file, - strlen(line) + (tag_ptr - line) + strlen(DATA_TAG[data_type]) + 1, SEEK_CUR);
         fprintf(file, "%-*s", DATA_LEN[data_type], modified_data);
     }
 
