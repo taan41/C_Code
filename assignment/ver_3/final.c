@@ -25,6 +25,10 @@ int main() {
                     case OP_CANCELLED: continue;
                 }
 
+            case 3:
+                init_data_manager();
+                break;
+
             case 0:
                 printf(" Ending program...");
                 exit(0);
@@ -36,10 +40,11 @@ int main() {
 }
 
 /**
- * @return  1: Create acc, 2: Login, 0: End
+ * @return  1: Create acc, 2: Login, 3: Reload, 0: End
  */
 int welcome_scr() {
-    system("cls");
+    // system("cls");
+    printf("\033[1;1H\033[J");
     char header[] = "Welcome to ";
 
     prnt_ui_line(1);
@@ -47,20 +52,21 @@ int welcome_scr() {
     prnt_ui_line(1);
 
     printf(
-        " 1. Create New Account"
-        "\n 2. Login"
-        "\n 0. End Program\n"
+        " 1. Create New Account\n"
+        " 2. Log In\n"
+        " 3. Reload Save File\n"
+        " 0. End Program\n"
     );
     prnt_ui_line(0);
 
-    return choice_input(0, 2);
+    return choice_input(0, 3);
 }
 
 /**
  * @return  OP states: 1, 0
  */
 int creating_scr() {
-    system("cls");
+    printf("\033[1;1H\033[J");
     prnt_header();
     printf(
         " Creating New Account...\n"
@@ -132,7 +138,7 @@ int creating_scr() {
  * @return  -1: Cancelled, 1: Successfully logged in
  */
 int login_scr() {
-    system("cls");
+    printf("\033[1;1H\033[J");
     prnt_header();
     printf(" Logging In...\n Press ESC to Cancel.\n");
     prnt_ui_line(0);
@@ -168,7 +174,7 @@ int login_scr() {
     if(pin_input(input, &input_size, &ch, cur_atm_ptr->pin, 1) == OP_CANCELLED) return OP_CANCELLED;
 
     prnt_ui_line(0);
-    printf(" Greetings, %s!\n Press any key to continue...", cur_atm_ptr->name);
+    printf(" \033[34mGreetings, \033[0m%s\033[34m!\033[0m\n Press any key to continue...", cur_atm_ptr->name);
     _getch();
     return OP_FINISH;
 }
@@ -179,7 +185,7 @@ int login_scr() {
 int acc_mng_scr() {
     char money_str[cur_meta.data_sizes[3] + 10];
 
-    system("cls");
+    printf("\033[1;1H\033[J");
     prnt_header();
     printf(" Account Name:   %s\n Account Number: %s\n", cur_atm_ptr->name, cur_atm_ptr->account);
     prnt_ui_line(0);
@@ -221,7 +227,7 @@ int withdraw_scr() {
     char input[100], ch = 0, money_str[cur_meta.data_sizes[3] + 10];
     int input_size;
 
-    system("cls");
+    printf("\033[1;1H\033[J");
     prnt_header();
     printf(" Withdrawing Cash...\n Press ESC to Cancel.\n");
     prnt_ui_line(0);
@@ -288,7 +294,7 @@ int transfer_scr() {
     int input_size, target_index = -1;
     ATM *target_atm;
 
-    system("cls");
+    printf("\033[1;1H\033[J");
     prnt_header();
     printf(" Transfering Money...\n Press ESC to Cancel.\n");
     prnt_ui_line(0);
@@ -353,7 +359,7 @@ int pin_chng_scr() {
     char new_pin[cur_meta.data_sizes[2] + 1], input[100], ch;
     int input_size = 0;
 
-    system("cls");
+    printf("\033[1;1H\033[J");
     prnt_header();
     printf(" Changing PIN...\n Press ESC to cancel.\n");
     prnt_ui_line(0);

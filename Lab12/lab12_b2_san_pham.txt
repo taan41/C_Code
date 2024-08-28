@@ -1,0 +1,18 @@
+San pham 1:
+Ma: asdf
+Ten: asdf
+So luong: 1
+Don gia: 10.00
+
+San pham 1:
+Ma: asdf
+Ten: asdf
+So luong: 5
+Don gia: 5.00
+
+San pham 1:
+Ma: asdf
+Ten: asdf
+So luong: 5
+Don gia: 10.00
+

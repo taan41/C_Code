@@ -11,7 +11,8 @@ typedef struct ATM_METADATA{
     char separator;
     size_t data_sizes[4];
     char *tags[4];
-    long long int bal_min;
+    long long int bal_create_min;
+    long long int bal_withdraw_max;
     char *bank_name;
 } ATM_METADATA;
 
@@ -20,7 +21,8 @@ ATM_METADATA default_meta = {
     .separator = ':',
     .data_sizes = {30, 14, 6, 18},
     .tags = {"name", "account", "pin", "balance"},
-    .bal_min = 50000,
+    .bal_create_min = 50000,
+    .bal_withdraw_max = 25000000,
     .bank_name = "VTC Academy Bank"
 };
 
@@ -64,7 +66,10 @@ int meta_from_file(ATM_METADATA *meta, char *file_name) {
     }
     
     fscanf(file, format, buffer);
-    meta->bal_min = strtoll(buffer, NULL, 10);
+    meta->bal_create_min = strtoll(buffer, NULL, 10);
+
+    fscanf(file, format, buffer);
+    meta->bal_withdraw_max = strtoll(buffer, NULL, 10);
 
     fscanf(file, format, buffer);
     meta->bank_name = strdup(buffer);
@@ -81,10 +86,17 @@ void meta_to_file(ATM_METADATA *meta, char *file_name) {
 
     for(int i = 0; i < 4; i++) fprintf(file, "%d%c", meta->data_sizes[i], s);
     for(int i = 0; i < 4; i++) fprintf(file, "%s%c", meta->tags[i], s);
-    fprintf(file, "%lld%c", meta->bal_min, s);
+    fprintf(file, "%lld%c", meta->bal_create_min, s);
+    fprintf(file, "%lld%c", meta->bal_withdraw_max, s);
     fprintf(file, "%s%c", meta->bank_name, s);
 
-    fputc('\n', file);
+    if(strcmp(file_name, META_FILE) == 0) fprintf(file,
+        "\n"
+        "## '(char)seperator' between each metadata\n"
+        "## List of metadata: '(int)data_sizes[4]' '(char *)tags[4]' '(long long int)bal_create_min' '(long long int)bal_withdraw_max' '(char *)bank_name'\n"
+        "## Each element of data_sizes[] and tags[] represents: 0th = name, 1st = account no, 2nd = pin code, 3rd = balance\n"
+    );
+    else fprintf(file, "    ## Read-only metadata\n");
     fclose(file);
 }
 
@@ -96,6 +108,11 @@ int meta_cmp(ATM_METADATA *meta1, ATM_METADATA *meta2) {
         if(meta1->data_sizes[i] != meta2->data_sizes[i]) return 0;
         if(strcmp(meta1->tags[i], meta2->tags[i]) != 0) return 0;
     }
+
+    int cmp = meta1->separator == meta2->separator;
+    if(cmp) cmp = meta1->bal_create_min == meta2->bal_create_min;
+    if(cmp) cmp = meta1->bal_withdraw_max == meta2->bal_withdraw_max;
     if(strcmp(meta1->bank_name, meta2->bank_name) != 0) return 0;
-    return meta1->separator == meta2->separator && meta1->bal_min == meta2->bal_min;
+
+    return cmp;
 }

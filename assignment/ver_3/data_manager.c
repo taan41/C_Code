@@ -25,8 +25,10 @@ typedef struct ATM {
 } ATM;
 
 // Function prototypes
+
 void init_data_manager();
-int init_atm_list();
+void init_atm_list();
+void reprnt_save_file();
 
 void atm_malloc(ATM *atm, ATM_METADATA *meta);
 void atm_to_file(ATM *atm);
@@ -53,14 +55,28 @@ int cur_index = -1;
 void init_data_manager() {
     init_meta_manager();
     init_atm_list();
+    reprnt_save_file();
 }
 
-int init_atm_list() {
+void reprnt_save_file() {
+    if(meta_cmp(&cur_meta, &old_meta) == 0) {
+        meta_to_file(&cur_meta, FILE_NAME);
+
+        for(int i = 0; i < atm_list_size; i++) atm_to_file(&atm_list[i]);
+    }
+
+}
+
+void init_atm_list() {
     if(meta_from_file(&old_meta, FILE_NAME) == 1) meta_to_file(&cur_meta, FILE_NAME);
 
     FILE *file = fopen(FILE_NAME, "r+");
 
-    if(atm_list == NULL) atm_list = malloc(atm_list_buffer_size * sizeof(ATM));
+    if(atm_list != NULL) {
+        free(atm_list);
+        atm_list_size = 0;
+    }
+    atm_list = malloc(atm_list_buffer_size * sizeof(ATM));
     ATM temp_atm;
     atm_malloc(&temp_atm, &old_meta);
 
@@ -85,13 +101,7 @@ int init_atm_list() {
 
     fclose(file);
 
-    if(meta_cmp(&cur_meta, &old_meta) == 0) {
-        meta_to_file(&cur_meta, FILE_NAME);
-
-        for(int i = 0; i < atm_list_size; i++) atm_to_file(&atm_list[i]);
-    }
-
-    return 0;
+    return;
 }
 
 void atm_malloc(ATM *atm, ATM_METADATA *meta) {
@@ -173,7 +183,7 @@ void random_account(char *name, char *account, char *pin, char *balance) {
  */
 int validate_created_data(char *data, int data_size, int data_type) {
     if(data_type == 1) for(int i = 0; i < atm_list_size; i++) if(strcmp(data, atm_list[i].account) == 0) return -1;
-    if(data_type == 3 && strtoll(data, NULL, 10) < cur_meta.bal_min) return 0;
+    if(data_type == 3 && strtoll(data, NULL, 10) < cur_meta.bal_create_min) return 0;
     return (data_type == 1 || data_type == 2) ? data_size == cur_meta.data_sizes[data_type] : (data_size > 0 && data_size <= cur_meta.data_sizes[data_type]);
 }
 
@@ -217,6 +227,17 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
     long long int withdraw_amount = 0;
     *ch = 0;
 
+    char max_withdraw[100];
+    money_to_str(max_withdraw, cur_meta.bal_withdraw_max);
+    char overwithdraw_msg[100] = "Must be under ";
+    strcat(overwithdraw_msg, max_withdraw);
+    if(mode == 1) printf(" Maximum withdrawable amount: %s\n", max_withdraw);
+
+    char min_transfer[100];
+    money_to_str(min_transfer, 10000);
+    char undertransfer_msg[100] = "Must be over ";
+    strcat(undertransfer_msg, min_transfer);
+
     printf(" Enter Money Ammount: ");
     while(1) {
         if((*input_size = unbuffered_input(input, cur_meta.data_sizes[3], 0, 1, 0, *ch)) == -1) return OP_CANCELLED;
@@ -224,7 +245,9 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
         withdraw_amount = strtoll(input, NULL, 10);
         if(*input_size == 0 || withdraw_amount == 0) prnt_invalid("Invalid ammount", *input_size, ch);
         else if(withdraw_amount > cur_atm_ptr->balance) prnt_invalid("Not enough money", *input_size, ch);
+        else if(mode == 1 && withdraw_amount > cur_meta.bal_withdraw_max) prnt_invalid(overwithdraw_msg, *input_size, ch);
         else if(mode == 1 && withdraw_amount % 100000 != 0) prnt_invalid("Must be multiple of 100.000", *input_size, ch);
+        else if(mode == 2 && withdraw_amount < 10000) prnt_invalid(undertransfer_msg, *input_size, ch);
         else break;
     }
     putchar('\n');
