@@ -29,9 +29,9 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${workspaceFolder}\\assignment\\final.c",
+                "${workspaceFolder}\\assignment\\ver_3\\final.c",
                 "-o",
-                "${workspaceFolder}\\assignment\\final.exe"
+                "${workspaceFolder}\\assignment\\ver_3\\final.exe"
             ],
             "problemMatcher": [
                 "$gcc"

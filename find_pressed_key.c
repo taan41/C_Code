@@ -11,9 +11,9 @@ int main() {
         system("cls");
         printf(
             "Pressed key (if displayable): %c\n"
-            "(int) value of pressed key: %d\n"
+            "(int) & (octal) value of pressed key: %d & %o\012"
             "Press any key: ",
-            ch, ch
+            ch, ch, (unsigned char) ch
         );
     }
 

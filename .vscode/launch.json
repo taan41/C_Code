@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Final",
+            "name": "Final Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}\\assignment\\final.exe",
+            "program": "${workspaceFolder}\\assignment\\ver_3\\final.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}\\assignment",
+            "cwd": "${workspaceFolder}\\assignment\\ver_3",
             "environment": [],
             "console": "integratedTerminal",
             "preLaunchTask": "Build final"

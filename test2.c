@@ -3,77 +3,41 @@
 #include <string.h>
 #include <ctype.h>
 #include <conio.h>
+#include <time.h>
+#include <locale.h>
+#include <windows.h>
 
-#define UI_PROMPT_MSG_LENGTH 20
-#define UI_NOTI_MSG_LENGTH 50
-
-void atm_input(void *target, size_t length, int digit_only, int return_lld, int exact_length, long long int min_value, char *ui_prompt_msg);
-
-int main() {
-    long long int test_lli;
-    char test_char[7];
-
-    atm_input(test_char, 15, 0, 0, 0, 0, "Input Name:");
-    printf("%s\n", test_char);
-
-    return 0;
+void prnt_line_1(size_t len, int double_line) {
+    char ch = double_line ? '=' : '-';
+    char line[len + 1];
+    memset(line, ch, len);
+    line[len] = '\0';
+    printf("%s\n", line);
 }
 
-void atm_input(void *target, size_t length, int digit_only, int return_lld, int exact_length, long long int min_value, char *ui_prompt_msg) {
-    size_t input_len = 1;
-    size_t buffer_size = 10;
-    char ch, *input = malloc(buffer_size * sizeof(char));
-    input[0] = '\0';
+void prnt_line_2(size_t len, int double_line) {
+    char ch = double_line ? '=' : '-';
+    while(len-- > 0) putchar(ch);
+    putchar('\n');
+}
 
-    printf(" %-*s", UI_PROMPT_MSG_LENGTH, ui_prompt_msg);
-    ch = _getch();
+int main() {
+    // Record the start time
+    clock_t start = clock();
 
-    while(ch != 27) {
-        if(digit_only ? isdigit(ch) : (isalpha(ch) || ch == ' ')) {
-            if(input_len >= buffer_size) {
-                buffer_size *= 2;
-                input = realloc(input, buffer_size * sizeof(char));
-            }
-            input[input_len - 1] = ch;
-            input[input_len++] = '\0';
-
-            putchar(ch);
-        }
-        else if(ch == '\n' || ch == '\r') {
-            int valid = exact_length ? input_len == length + 1 : input_len <= length + 1;
-            if(return_lld) valid = strtoll(input, NULL, 10) >= min_value;
-
-            if(valid) break;
-
-            printf(
-                "\r %*s\r %-*s%s",
-                UI_PROMPT_MSG_LENGTH + input_len, "",
-                UI_PROMPT_MSG_LENGTH, ui_prompt_msg,
-                "Invalid, please re-enter"
-            );
-
-            input_len = 1;
-            input[0] = '\0';
-
-            ch = _getch();
-            printf(
-                "\r %*s\r %-*s",
-                UI_PROMPT_MSG_LENGTH  + UI_NOTI_MSG_LENGTH, "",
-                UI_PROMPT_MSG_LENGTH, ui_prompt_msg
-            );
-            continue;
-        }
-        else if(ch == '\b' && input_len > 1) {
-            printf("\b \b");
-            input[--input_len - 1] = '\0';
-        }
-
-        ch = _getch();
+    // Perform the operation you want to measure
+    for (int i = 0; i < 10000; i++) {
+        prnt_line_1(100, 1); // Assuming prnt_line_1 is a valid function
     }
 
-    if(return_lld) *(long long int *)target = strtoll(input, NULL, 10);
-    else strcpy((char *)target, input);
+    // Record the end time
+    clock_t end = clock();
 
-    putchar('\n');
-    free(input);
+    // Calculate the elapsed time in milliseconds
+    double elapsed_time = ((double)(end - start) / CLOCKS_PER_SEC) * 1000;
+
+    // Print the elapsed time
+    printf("Elapsed time: %.3f ms\n", elapsed_time);
+
+    return 0;
 }

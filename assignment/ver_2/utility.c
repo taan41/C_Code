@@ -54,10 +54,10 @@ typedef struct ATM {
 void init_atm_list();
 void atm_to_file(ATM *atm);
 void atm_to_list(ATM *atm);
-void modify_file(int atm_index, int data_type, char *modified_data);
+void update_atm_file(int atm_index, int data_type, char *modified_data);
 void random_account(char *name, char *account, char *pin, char *balance);
 int validate_created_data(char *data, int data_size, int data_type);
-int enter_pin(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored);
+int pin_input(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored);
 long long int get_money(char *input, int *input_size, char *ch);
 
 void prnt_line(size_t len, int double_line);
@@ -72,7 +72,7 @@ int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_c
 int choice_input(int min, int max);
 int yes_no_input();
 
-ATM *cur_atm, *atm_list = NULL;
+ATM *cur_atm_ptr, *atm_list = NULL;
 size_t atm_list_size = 0, atm_list_buffer_size = 10;
 int cur_index = -1;
 
@@ -138,7 +138,7 @@ void atm_to_list(ATM *atm) {
  * @param data_type     0: name, 1: account, 2: pin, 3: balance
  * @param modified_data String of value to change
  */
-void modify_file(int atm_index, int data_type, char *modified_data) {
+void update_atm_file(int atm_index, int data_type, char *modified_data) {
     FILE *file = fopen("account-number.dat", "r+");
 
     for(int i = 0; i < atm_index; i++) fscanf(file, "%*[^\n]\n");
@@ -191,7 +191,7 @@ int validate_created_data(char *data, int data_size, int data_type) {
  * 
  * @return  OP states: 0, 1
  */
-int enter_pin(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored) {
+int pin_input(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored) {
     *ch = 0;
     while(1) {
         if((*input_size = unbuffered_input(input, DATA_LEN[2], 1, is_censored, *ch)) == OP_CANCELLED) return OP_CANCELLED;
@@ -222,7 +222,7 @@ long long int get_money(char *input, int *input_size, char *ch) {
     while(1) {
         if((*input_size = unbuffered_input(input, DATA_LEN[3], 1, 0, *ch)) == -1) return OP_CANCELLED;
         if(*input_size > 0 && *input_size <= DATA_LEN[3]) {
-            if(strtoll(input, NULL, 10) > 0 && strtoll(input, NULL, 10) <= cur_atm->balance) {
+            if(strtoll(input, NULL, 10) > 0 && strtoll(input, NULL, 10) <= cur_atm_ptr->balance) {
                 withdraw_amount = strtoll(input, NULL, 10);
                 break;
             }
@@ -345,7 +345,7 @@ void receipt(long long int withdraw_amount) {
     strcat(result_str, line_write);
 
     sprintf(buffer, " So the:");
-    strcpy(buffer2, cur_atm->account);
+    strcpy(buffer2, cur_atm_ptr->account);
     memset(buffer2 + 4, '*', DATA_LEN[1] - 8);
     sprintf(line_write, "%s%*s\n", buffer, UI_WIDTH - strlen(buffer), buffer2);
     strcat(result_str, line_write);
@@ -383,7 +383,7 @@ void receipt(long long int withdraw_amount) {
     strcat(result_str, line_write);
 
     sprintf(buffer, " So du:");
-    money_to_str(buffer2, cur_atm->balance);
+    money_to_str(buffer2, cur_atm_ptr->balance);
     sprintf(line_write, "%s%*s\n", buffer, UI_WIDTH - strlen(buffer), buffer2);
     strcat(result_str, line_write);
 

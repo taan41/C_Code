@@ -1,4 +1,4 @@
-#include "utility.c"
+#include "data_manager.c"
 
 int welcome_scr();
 int creating_scr();
@@ -11,7 +11,7 @@ int pin_chng_scr();
 int main() {
     srand(time(NULL));
 
-    init_atm_list();
+    init_data_manager();
     
     while(1) {
         switch(welcome_scr()) {
@@ -40,11 +40,10 @@ int main() {
  */
 int welcome_scr() {
     system("cls");
-    char header[UI_WIDTH];
-    sprintf(header, "Welcome to %s!", BANK_NAME);
+    char header[] = "Welcome to ";
 
     prnt_ui_line(1);
-    printf("%*s\n", (UI_WIDTH + strlen(header)) / 2, header);
+    printf("%*s%s\033[34m%s\033[0m!\n", (UI_WIDTH - strlen(header) - strlen(cur_meta.bank_name) - 1) / 2 , "", header, cur_meta.bank_name);
     prnt_ui_line(1);
 
     printf(
@@ -73,6 +72,7 @@ int creating_scr() {
         {" Enter Account Name:", " Enter Account No:", " Enter Pin:", " Enter Balance:"},
         {"name", "account", "pin", "balance"}
     };
+    int exact_size[4] = {0, 1, 1, 0};
     int input_mode[4] = {2, 1, 1, 1};
 
     char atm_buffer[4][100], input[100], invalid_msg[100], ch;
@@ -88,7 +88,7 @@ int creating_scr() {
         while(1) {
             strcpy(input, atm_buffer[i]);
 
-            if((input_size = unbuffered_input(input, DATA_LEN[i], input_mode[i], 0, ch)) == OP_CANCELLED) {
+            if((input_size = unbuffered_input(input, cur_meta.data_sizes[i], exact_size[i], input_mode[i], 0, ch)) == OP_CANCELLED) {
                 printf("%s", atm_buffer[i]);
                 changed = 0;
                 break;
@@ -111,9 +111,9 @@ int creating_scr() {
     printf(" Do you want to create ATM Card? (Y/N): ");
     if(yes_no_input()) {
         ATM new_atm;
-        strcpy(new_atm.name, atm_buffer[0]);
-        strcpy(new_atm.account, atm_buffer[1]);
-        strcpy(new_atm.pin, atm_buffer[2]);
+        new_atm.name = strdup(atm_buffer[0]);
+        new_atm.account = strdup(atm_buffer[1]);
+        new_atm.pin = strdup(atm_buffer[2]);
         new_atm.balance = strtoll(atm_buffer[3], NULL, 10);
 
         atm_to_file(&new_atm);
@@ -143,8 +143,8 @@ int login_scr() {
     sprintf(prompt, " Enter Account No:");
     printf("%-*s", UI_PROMPT_MSG_LEN, prompt);
     while(1) {
-        if((input_size = unbuffered_input(input, DATA_LEN[1], 1, 0, ch)) == OP_CANCELLED) return OP_CANCELLED;
-        if(input_size == DATA_LEN[1]) {
+        if((input_size = unbuffered_input(input, cur_meta.data_sizes[1], 1, 1, 0, ch)) == OP_CANCELLED) return OP_CANCELLED;
+        if(input_size == cur_meta.data_sizes[1]) {
             for(int i = 0; i < atm_list_size; i++) {
                 if(strcmp(input, atm_list[i].account) == 0) {
                     cur_index = i;
@@ -177,7 +177,7 @@ int login_scr() {
  * @return  -1: Cancelled, 0: Done, 1: Continue
  */
 int acc_mng_scr() {
-    char money_str[DATA_LEN[3] + 10];
+    char money_str[cur_meta.data_sizes[3] + 10];
 
     system("cls");
     prnt_header();
@@ -218,7 +218,7 @@ int acc_mng_scr() {
  */
 int withdraw_scr() {
     long long int withdraw_amount = 0;
-    char input[100], ch = 0, money_str[DATA_LEN[3] + 10];
+    char input[100], ch = 0, money_str[cur_meta.data_sizes[3] + 10];
     int input_size;
 
     system("cls");
@@ -247,7 +247,7 @@ int withdraw_scr() {
         case 4: withdraw_amount = 1000000; break;
         case 5: withdraw_amount = 2000000; break;
         case 6:
-            if((withdraw_amount = get_money(input, &input_size, &ch)) == OP_CANCELLED) return OP_CANCELLED;
+            if((withdraw_amount = money_input(input, &input_size, &ch, 1)) == OP_CANCELLED) return OP_CANCELLED;
             break;
         case -1: return OP_CANCELLED;
     }
@@ -268,7 +268,7 @@ int withdraw_scr() {
             receipt(withdraw_amount);
         }
 
-        sprintf(money_str, "%-*lld", DATA_LEN[3], cur_atm_ptr->balance);
+        sprintf(money_str, "%-*lld", cur_meta.data_sizes[3], cur_atm_ptr->balance);
         update_atm_file(cur_index, 3, money_str);
     }
     else printf(" Cancelled transaction.\n");
@@ -284,7 +284,7 @@ int withdraw_scr() {
  */
 int transfer_scr() {
     long long int transfer_amount = 0;
-    char input[100], ch = 0, money_str[DATA_LEN[3] + 10];
+    char input[100], ch = 0, money_str[cur_meta.data_sizes[3] + 10];
     int input_size, target_index = -1;
     ATM *target_atm;
 
@@ -299,8 +299,8 @@ int transfer_scr() {
 
     printf("%-*s", UI_PROMPT_MSG_LEN, " Enter Account No:");
     while(1) {
-        if((input_size = unbuffered_input(input, DATA_LEN[1], 1, 0, ch)) == OP_CANCELLED) return OP_CANCELLED;
-        if(input_size == DATA_LEN[1]) {
+        if((input_size = unbuffered_input(input, cur_meta.data_sizes[1], 1, 1, 0, ch)) == OP_CANCELLED) return OP_CANCELLED;
+        if(input_size == cur_meta.data_sizes[1]) {
             for(int i = 0; i < atm_list_size; i++) {
                 if(strcmp(input, atm_list[i].account) == 0 && strcmp(input, cur_atm_ptr->account) != 0) {
                     target_index = i;
@@ -322,7 +322,7 @@ int transfer_scr() {
     );
     if(!yes_no_input()) return OP_LOOP;
 
-    if((transfer_amount = get_money(input, &input_size, &ch)) == OP_CANCELLED) return OP_CANCELLED;
+    if((transfer_amount = money_input(input, &input_size, &ch, 0)) == OP_CANCELLED) return OP_CANCELLED;
     prnt_ui_line(0);
 
     money_to_str(money_str, transfer_amount);
@@ -333,9 +333,9 @@ int transfer_scr() {
         cur_atm_ptr->balance -= transfer_amount;
         target_atm->balance += transfer_amount;
 
-        sprintf(money_str, "%-*lld", DATA_LEN[3], cur_atm_ptr->balance);
+        sprintf(money_str, "%-*lld", cur_meta.data_sizes[3], cur_atm_ptr->balance);
         update_atm_file(cur_index, 3, money_str);
-        sprintf(money_str, "%-*lld", DATA_LEN[3], target_atm->balance);
+        sprintf(money_str, "%-*lld", cur_meta.data_sizes[3], target_atm->balance);
         update_atm_file(target_index, 3, money_str);
     }
     else printf(" Cancelled transaction.\n");
@@ -350,7 +350,7 @@ int transfer_scr() {
  * @return  -1: Cancelled, 0: Done
  */
 int pin_chng_scr() {
-    char new_pin[DATA_LEN[2] + 1], input[100], ch;
+    char new_pin[cur_meta.data_sizes[2] + 1], input[100], ch;
     int input_size = 0;
 
     system("cls");
