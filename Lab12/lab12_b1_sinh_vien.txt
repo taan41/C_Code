@@ -1,0 +1,12 @@
+Sinh vien 1:
+Ma:  df
+Ten:  df
+Que quan:  df
+Ghi chu: asdf
+
+Sinh vien 1:
+Ma: asdf
+Ten: asdf
+Que quan: asdf
+Ghi chu: asdf
+
