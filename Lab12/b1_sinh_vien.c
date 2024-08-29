@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct SanPham{
+typedef struct SinhVien{
     char ma_SV[30];
     char ten_SV[30];
     char que_quan[30];
     char ghi_chu[30];
-}SanPham;
+}SinhVien;
 
 void flush() {
     while(getchar() != '\n');
@@ -25,7 +25,7 @@ int main() {
 
     FILE *file = fopen("lab12_b1_sinh_vien.txt", "w");
 
-    SanPham *danh_sach = malloc(n * sizeof(SanPham));
+    SinhVien *danh_sach = malloc(n * sizeof(SinhVien));
     for(int i = 0; i < n; i++) {
         fprintf(file, "Sinh vien %d:\n", i + 1);
 
