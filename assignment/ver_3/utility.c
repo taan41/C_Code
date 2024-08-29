@@ -18,6 +18,10 @@
 #define UI_WIDTH 50
 #define UI_PROMPT_MSG_LEN 21
 
+// Keys
+#define ESC         27
+#define CTRL_BACK   23
+
 // Function prototypes
 
 int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int input_mode, int is_censored, char first_ch);
@@ -60,8 +64,7 @@ int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int i
 
         if(ch == '\n' || ch == '\r') break;
         switch(ch) {
-            // Ctrl + Backspace
-            case 23:
+            case CTRL_BACK:
                 if(input_size > 0) printf("\033[%dD%*s\033[%dD\033[0m", input_size, input_size, "", input_size);
                 if(is_exact_size) printf("\033[31m");
                 input_size = 0;
@@ -78,7 +81,7 @@ int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int i
                 input[--input_size] = '\0';
                 break;
 
-            case '\033':
+            case ESC:
                 if(input_size > 0) printf("\033[%dD%*s\033[%dD", input_size, input_size, "", input_size);
                 printf("\033[0m");
                 return OP_CANCELLED;
