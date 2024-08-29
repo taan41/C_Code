@@ -24,14 +24,14 @@
         },
         {
             "type": "cppbuild",
-            "label": "Build final",
+            "label": "Build assignment",
             "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${workspaceFolder}\\assignment\\ver_3\\final.c",
+                "${workspaceFolder}\\assignment\\ver_3\\main.c",
                 "-o",
-                "${workspaceFolder}\\assignment\\ver_3\\final.exe"
+                "${workspaceFolder}\\assignment\\ver_3\\main.exe"
             ],
             "problemMatcher": [
                 "$gcc"

@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Final Launch",
+            "name": "Assignment Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}\\assignment\\ver_3\\final.exe",
+            "program": "${workspaceFolder}\\assignment\\ver_3\\main.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}\\assignment\\ver_3",

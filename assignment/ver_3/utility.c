@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
@@ -18,6 +18,7 @@
 #define UI_PROMPT_MSG_LEN 21
 
 // Function prototypes
+
 int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int input_mode, int is_censored, char first_ch);
 int choice_input(int min, int max);
 int yes_no_input();
@@ -167,8 +168,8 @@ void prnt_ui_line(int double_line) {
 
 void prnt_header() {
     prnt_ui_line(1);
-    int pad = (UI_WIDTH - strlen(cur_meta.bank_name)) / 2;
-    printf("%*s\033[34m%s\033[0m\n", pad, "", cur_meta.bank_name);
+    int pad = (UI_WIDTH - strlen(main_meta.bank_name)) / 2;
+    printf("%*s\033[34m%s\033[0m\n", pad, "", main_meta.bank_name);
     prnt_ui_line(1);
 }
 
@@ -206,7 +207,7 @@ void standardize_str(char *str) {
  * @brief   Add dot every 3 digits and "VND" at the end
  */
 void money_to_str(char *target_money_str, long long int money) {
-    char money_str[cur_meta.data_sizes[3] + 10];
+    char money_str[main_meta.data_sizes[3] + 10];
     sprintf(money_str, "%lld", money);
     int size = strlen(money_str);
 
