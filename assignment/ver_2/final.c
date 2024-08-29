@@ -21,7 +21,7 @@ int main() {
 
             case 2:
                 switch(login_scr()) {
-                    case OP_FINISH: while(acc_mng_scr() == OP_LOOP);
+                    case OP_FINISHED: while(acc_mng_scr() == OP_LOOP);
                     case OP_CANCELLED: continue;
                 }
 
@@ -124,7 +124,7 @@ int creating_scr() {
 
     prnt_ui_line(0);
     printf(" Press ESC to return, any other key to continue making accounts.");
-    if(_getch() == 27) return OP_FINISH;
+    if(_getch() == 27) return OP_FINISHED;
     return OP_LOOP;
 }
 
@@ -170,7 +170,7 @@ int login_scr() {
     prnt_ui_line(0);
     printf(" Greetings, %s!\n Press any key to continue...", cur_atm_ptr->name);
     _getch();
-    return OP_FINISH;
+    return OP_FINISHED;
 }
 
 /**
@@ -207,7 +207,7 @@ int acc_mng_scr() {
             prnt_ui_line(0);
             printf(" Logging out...\n Press any key to continue...");
             _getch();
-            return OP_FINISH;
+            return OP_FINISHED;
     }
 
     return OP_LOOP;
@@ -275,7 +275,7 @@ int withdraw_scr() {
 
     prnt_ui_line(0);
     printf(" Press ESC to return, any other key to continue withdrawing.");
-    if(_getch() == 27) return OP_FINISH;
+    if(_getch() == 27) return OP_FINISHED;
     return OP_LOOP;
 }
 
@@ -342,7 +342,7 @@ int transfer_scr() {
 
     prnt_ui_line(0);
     printf(" Press ESC to return, any other key to continue withdrawing.");
-    if(_getch() == 27) return OP_FINISH;
+    if(_getch() == 27) return OP_FINISHED;
     return OP_LOOP;
 }
 
@@ -374,5 +374,5 @@ int pin_chng_scr() {
     printf(" Changed PIN successfully!\n Press any key to return...");
     _getch();
 
-    return OP_FINISH;
+    return OP_FINISHED;
 }

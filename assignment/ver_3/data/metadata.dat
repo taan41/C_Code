@@ -1,0 +1,6 @@
+:30:14:6:18:2:name:account:pin:balance:attempt:50000:25000000:VTC Academy Bank:
+## '(char)seperator' between each metadata
+## List of metadata:   '(int)data_sizes[4]' '(char *)tags[4]'
+##                     '(long long int)bal_create_min' '(long long int)bal_withdraw_max'
+##                     '(char *)bank_name'
+## Each element of data_sizes[] and tags[] represents: 0 = name, 1 = account no, 2 = pin code, 3 = balance, 4 = attempt

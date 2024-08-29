@@ -16,7 +16,7 @@
 #endif
 
 // Operation states
-#define OP_FINISH      0
+#define OP_FINISHED      0
 #define OP_LOOP        1
 #define OP_CANCELLED   -1
 
@@ -206,7 +206,7 @@ int pin_input(char *input, int *input_size, char *ch, char *pin_to_check, int is
         prnt_invalid("Invalid PIN", *input_size, ch);
     }
     putchar('\n');
-    return OP_FINISH;
+    return OP_FINISHED;
 }
 
 /**

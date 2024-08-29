@@ -9,8 +9,9 @@
 #include "metadata_manager.c"
 
 // Operation states
-#define OP_FINISH      0
-#define OP_LOOP        1
+#define OP_LOOP        0
+#define OP_FINISHED    1
+#define OP_FAILED      2 
 #define OP_CANCELLED   -1
 
 // UI 
@@ -92,6 +93,7 @@ int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int i
                 }
                 if(input_size < max_size) {
                     input[input_size++] = ch;
+                    input[input_size] = '\0';
                     putchar(is_censored ? '*' : ch);
 
                     if(is_exact_size && input_size == max_size) {
@@ -102,7 +104,6 @@ int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int i
         }
     }
     
-    input[input_size] = '\0';
     strcpy(target_buffer, input);
     return input_size;
 }
@@ -168,8 +169,8 @@ void prnt_ui_line(int double_line) {
 
 void prnt_header() {
     prnt_ui_line(1);
-    int pad = (UI_WIDTH - strlen(main_meta.bank_name)) / 2;
-    printf("%*s\033[34m%s\033[0m\n", pad, "", main_meta.bank_name);
+    int pad = (UI_WIDTH - strlen(main_meta.bank_name)) / 2 - 1;
+    printf("%*s\033[1;37;44m %s \033[0m\n", pad, "", main_meta.bank_name);
     prnt_ui_line(1);
 }
 
@@ -207,7 +208,7 @@ void standardize_str(char *str) {
  * @brief   Add dot every 3 digits and "VND" at the end
  */
 void money_to_str(char *target_money_str, long long int money) {
-    char money_str[main_meta.data_sizes[3] + 10];
+    char money_str[main_meta.data_sizes[3] + 15];
     sprintf(money_str, "%lld", money);
     int size = strlen(money_str);
 

@@ -38,8 +38,14 @@ int length = 10;
 // }
 
 int main() {
-    printf("Test==========================\n");
-    _getch();
-    printf("\033[1;1H\033[J");
-    _getch();
+    char test[100] = "a test string";
+
+    printf("%s\n", test);
+    
+    char *ptr = strstr(test, "string");
+    printf("%d\n%s\n", strlen(test) - (ptr - test), test);
+    memmove(ptr + 5, ptr, 6 * sizeof(char));
+    strncpy(ptr, "test ", strlen("test ") * sizeof(char));
+
+    printf("%d\n%s\n", strlen(test) - (ptr - test), test);
 }

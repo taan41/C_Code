@@ -1,5 +1,7 @@
 #include "utility.c"
 
+// Defines
+
 #ifdef _WIN32
     #include <direct.h>  // For _mkdir on Windows
     #define MKDIR(dir) _mkdir(dir)
@@ -9,19 +11,16 @@
     #define MKDIR(dir) mkdir(dir, 0777)
 #endif
 
-// Defines
-#define SAVE_FILE "account-number.dat"
+#define SAVE_FILE "data\\account-number.dat"
 
-#define TAG_TOTAL_SIZE(meta) strlen(meta.tags[0]) + strlen(meta.tags[1]) + strlen(meta.tags[2]) + strlen(meta.tags[3])
-
-#define DATA_TOTAL_SIZE(meta) meta.data_sizes[0] + meta.data_sizes[1] + meta.data_sizes[2] + meta.data_sizes[3]
-#define FILE_LINE_SIZE(meta) DATA_TOTAL_SIZE(meta) + TAG_TOTAL_SIZE(meta) + 7
+#define DEFAULT_ATTEMPTS_AMOUNT 7
 
 typedef struct ATM {
     char *name;
     char *account;
     char *pin;
     long long int balance;
+    int PIN_attempt;
 } ATM;
 
 // Function prototypes
@@ -38,7 +37,7 @@ void update_atm_file(int atm_index, int data_type, char *modified_data);
 void random_account(char *name, char *account, char *pin, char *balance);
 int validate_created_data(char *data, int data_size, int data_type);
 
-int pin_input(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored);
+int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_censored);
 long long int money_input(char *input, int *input_size, char *ch, int mode);
 void receipt(long long int withdraw_amount, int withdraw_mode);
 void free_everything();
@@ -54,6 +53,7 @@ int cur_index = -1;
  * @return  0: No error, 1: Error
  */
 void init_data_manager() {
+    MKDIR("data");
     init_meta_manager();
     init_atm_list();
     reprnt_save_file();
@@ -83,22 +83,27 @@ void init_atm_list() {
     ATM temp_atm;
     atm_malloc(&temp_atm, &save_meta);
 
-    int line_size = FILE_LINE_SIZE(main_meta) + 1;
-    line_size = FILE_LINE_SIZE(save_meta) + 1 > line_size ? FILE_LINE_SIZE(save_meta) + 1 : line_size;
-    char format[100], line[line_size], balance_buffer[50];
-    fscanf(file, "%[^\n]\n", line);
-    sprintf(format, "%s%c%%%d[^'%c']%c%s%c%%%ds%c%s%c%%%ds%c%s%c%%%d[^'%c']%c\n",
+    char format[100], line[100];
+    sprintf(format, "%s%c%%%d[^'%c']%c%s%c%%%ds%c%s%c%%%ds%c%s%c%%%d[^'%c']%c%s%c%%%ds%c",
         save_meta.tags[0], save_meta.separator, save_meta.data_sizes[0], save_meta.separator, save_meta.separator,
         save_meta.tags[1], save_meta.separator, save_meta.data_sizes[1], save_meta.separator,
         save_meta.tags[2], save_meta.separator, save_meta.data_sizes[2], save_meta.separator,
-        save_meta.tags[3], save_meta.separator, save_meta.data_sizes[3], save_meta.separator, save_meta.separator
+        save_meta.tags[3], save_meta.separator, save_meta.data_sizes[3] + 2, save_meta.separator, save_meta.separator,
+        save_meta.tags[4], save_meta.separator, save_meta.data_sizes[4], save_meta.separator
     );
 
-    while(fscanf(file, format, temp_atm.name, temp_atm.account, temp_atm.pin, balance_buffer) == 4) {
+    char balance_buffer[50], attempt_buffer[10];
+    fscanf(file, "%[^\n]\n", line);
+    while(fscanf(file, "%[^\n]\n", line) == 1) {
+        sscanf(line, format, temp_atm.name, temp_atm.account, temp_atm.pin, balance_buffer, attempt_buffer);
+
         char *trim_ptr = temp_atm.name + strlen(temp_atm.name);
         while(isspace(*--trim_ptr));
         *(trim_ptr + 1) = '\0';
+
         temp_atm.balance = strtoll(balance_buffer, NULL, 10);
+        temp_atm.PIN_attempt = strtol(attempt_buffer, NULL, 10);
+
         atm_to_list(&temp_atm);
     }
 
@@ -108,21 +113,23 @@ void init_atm_list() {
 }
 
 void atm_malloc(ATM *atm, ATM_METADATA *meta) {
-    atm->name = malloc(meta->data_sizes[0] * sizeof(char));
-    atm->account = malloc(meta->data_sizes[1] * sizeof(char));
-    atm->pin = malloc(meta->data_sizes[3] * sizeof(char));
+    atm->name = malloc((meta->data_sizes[0] + 1) * sizeof(char));
+    atm->account = malloc((meta->data_sizes[1] + 1) * sizeof(char));
+    atm->pin = malloc((meta->data_sizes[2] + 1) * sizeof(char));
     atm->balance = 0;
+    atm->PIN_attempt = -1;
 }
 
 void atm_to_file(ATM *atm) {
     FILE *file = fopen(SAVE_FILE, "a");
 
     fprintf(file,
-        "%s%c%-*s%c%s%c%*s%c%s%c%*s%c%s%c%-*lld%c\n",
+        "%s%c%-*s%c%s%c%*s%c%s%c%*s%c%s%c%-*lld%c%s%c%-*d%c\n",
         main_meta.tags[0], main_meta.separator, main_meta.data_sizes[0], atm->name, main_meta.separator,
         main_meta.tags[1], main_meta.separator, main_meta.data_sizes[1], atm->account, main_meta.separator,
         main_meta.tags[2], main_meta.separator, main_meta.data_sizes[2], atm->pin, main_meta.separator,
-        main_meta.tags[3], main_meta.separator, main_meta.data_sizes[3], atm->balance, main_meta.separator
+        main_meta.tags[3], main_meta.separator, main_meta.data_sizes[3] + 2, atm->balance, main_meta.separator,
+        main_meta.tags[4], main_meta.separator, main_meta.data_sizes[4], atm->PIN_attempt, main_meta.separator
     );
 
     fclose(file);
@@ -133,6 +140,8 @@ void atm_to_list(ATM *atm) {
     atm_list[atm_list_size].account = strdup(atm->account);
     atm_list[atm_list_size].pin = strdup(atm->pin);
     atm_list[atm_list_size].balance = atm->balance;
+    atm_list[atm_list_size].PIN_attempt = atm->PIN_attempt;
+
     atm_list_size++;
 
     if(atm_list_size >= atm_list_buffer_size) {
@@ -145,21 +154,23 @@ void atm_to_list(ATM *atm) {
  * @brief   Change indexed account's one specific data in save file
  * 
  * @param atm_index     Account index
- * @param data_type     0: name, 1: account, 2: pin, 3: balance
+ * @param data_type     0: name, 1: account, 2: pin, 3: balance, 4: PIN attempts
  * @param modified_data String of value to change
  */
 void update_atm_file(int atm_index, int data_type, char *modified_data) {
-    FILE *file = fopen("account-number.dat", "r+");
+    FILE *file = fopen(SAVE_FILE, "r+");
 
     for(int i = 0; i < atm_index + 1; i++) fscanf(file, "%*[^\n]\n");
 
-    char line[FILE_LINE_SIZE(main_meta) + 1], *tag_ptr;
-    fscanf(file, "%[^\n]", line);
-
-    if((tag_ptr = strstr(line, main_meta.tags[data_type])) != NULL) {
-        fseek(file, - strlen(line) + (tag_ptr - line) + strlen(main_meta.tags[data_type]) + 1, SEEK_CUR);
-        fprintf(file, "%-*s", main_meta.data_sizes[data_type], modified_data);
-    }
+    fseek(file, 0, SEEK_CUR);
+    fprintf(file,
+        "%s%c%-*s%c%s%c%*s%c%s%c%*s%c%s%c%-*lld%c%s%c%-*d%c\n",
+        main_meta.tags[0], main_meta.separator, main_meta.data_sizes[0], atm_list[atm_index].name, main_meta.separator,
+        main_meta.tags[1], main_meta.separator, main_meta.data_sizes[1], atm_list[atm_index].account, main_meta.separator,
+        main_meta.tags[2], main_meta.separator, main_meta.data_sizes[2], atm_list[atm_index].pin, main_meta.separator,
+        main_meta.tags[3], main_meta.separator, main_meta.data_sizes[3] + 2, atm_list[atm_index].balance, main_meta.separator,
+        main_meta.tags[4], main_meta.separator, main_meta.data_sizes[4], atm_list[atm_index].PIN_attempt, main_meta.separator
+    );
 
     fclose(file);
 }
@@ -196,27 +207,43 @@ int validate_created_data(char *data, int data_size, int data_type) {
  * @param input             Allocated char* to store input
  * @param input_size        int* to store input size
  * @param ch                ch* to store first character entered
- * @param pin_to_check      If !NULL: used to compare entered PIN
+ * @param atm_to_check      If !NULL: used to compare entered PIN
  * @param is_censored       If 1: show entered PIN as '*'
  * 
  * @return  OP states: 0, 1
  */
-int pin_input(char *input, int *input_size, char *ch, char *pin_to_check, int is_censored) {
+int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_censored) {
     *ch = 0;
+
+    char incorrect_msg[100], attempts_str[10];
     while(1) {
+        if(atm_to_check != NULL && atm_to_check->PIN_attempt == 0) {
+            prnt_invalid("Account Is Locked, Please Contact Customer Service", 0, ch);
+            return OP_FAILED;
+        }
         if((*input_size = unbuffered_input(input, main_meta.data_sizes[2], 1, 1, is_censored, *ch)) == OP_CANCELLED) return OP_CANCELLED;
         if(*input_size == main_meta.data_sizes[2]) {
-            if(pin_to_check != NULL && strcmp(input, pin_to_check) != 0) {
-                prnt_invalid("Incorrect PIN", *input_size, ch);
-                continue;
+            if(atm_to_check != NULL) {
+                if(strcmp(input, atm_to_check->pin) != 0) {
+                    (atm_to_check->PIN_attempt)--;
+                    if(atm_to_check->PIN_attempt < 5 && atm_to_check->PIN_attempt >= 0) sprintf(incorrect_msg, "Incorrect PIN, %d Attempts Left", atm_to_check->PIN_attempt);
+                    else sprintf(incorrect_msg, "Incorrect PIN");
+                    prnt_invalid(incorrect_msg, *input_size, ch);
+
+                    sprintf(attempts_str, "%d", atm_to_check->PIN_attempt);
+                    update_atm_file(cur_index, 4, attempts_str);
+                    continue;
+                }
+                atm_to_check->PIN_attempt = DEFAULT_ATTEMPTS_AMOUNT;
+                sprintf(attempts_str, "%d", DEFAULT_ATTEMPTS_AMOUNT);
+                update_atm_file(cur_index, 4, attempts_str);
             }
             break;
-        }
-
-        prnt_invalid("Invalid PIN", *input_size, ch);
+        } else prnt_invalid("Invalid PIN", *input_size, ch);
     }
     putchar('\n');
-    return OP_FINISH;
+
+    return OP_FINISHED;
 }
 
 /**
@@ -266,7 +293,7 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
  * @param withdraw_mode     1: Withdraw cash, 2: Transfer
  */
 void receipt(long long int withdraw_amount, int withdraw_mode) {
-    system("cls");
+    printf("\033[1;1H\033[J");
     MKDIR("receipts");
 
     char result_str[(UI_WIDTH + 1) * 18 + 1], line_write[UI_WIDTH + 2], buffer[101], buffer2[101];
@@ -315,7 +342,7 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     strcat(result_str, line_write);
 
     char receipt_name[100];
-    sprintf(receipt_name, "receipts/receipt-%s.txt", buffer2);
+    sprintf(receipt_name, "receipts\\receipt-%s.txt", buffer2);
 
     sprintf(buffer, " Noi dung:");
     switch(withdraw_mode) {

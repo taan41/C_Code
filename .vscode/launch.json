@@ -14,7 +14,7 @@
             "cwd": "${workspaceFolder}\\assignment\\ver_3",
             "environment": [],
             "console": "integratedTerminal",
-            "preLaunchTask": "Build final"
+            "preLaunchTask": "Build assignment"
         },
         {
             "name": "(Windows) Launch",
