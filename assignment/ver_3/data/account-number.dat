@@ -1,0 +1,7 @@
+:|30|14|6|18|2|name|account|pin|balance|attempt|50000|25000000|VTC Academy Bank|    ## Read-only metadata
+name:TEST ACCOUNT                  :account:00000000000000:pin:000000:balance:100000000000000000  :attempt:7 :
+name:TEST ACCOUNT 1                :account:11111111111111:pin:111111:balance:111111111111111111  :attempt:7 :
+name:LE DUONG ANH                  :account:51421803041119:pin:731512:balance:923700000           :attempt:7 :
+name:HOANG DUONG HA                :account:99649722059935:pin:391860:balance:504600000           :attempt:7 :
+name:DANG DUONG HOA                :account:54886320803532:pin:324631:balance:922800000           :attempt:7 :
+name:TRAN VAN HA                   :account:75886947055919:pin:818018:balance:30600000            :attempt:7 :

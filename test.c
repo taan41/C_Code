@@ -10,6 +10,7 @@ int length = 10;
 
 int main() {
     char test[100], test2[100];
-    scanf("%[^|]|%[^\n]", test, test2);
+    scanf("%10c|%[^\n]", test, test2);
+    test[10] = '\0';
     printf("%s\n%s\n", test, test2);
 }

@@ -84,11 +84,11 @@ void init_atm_list() {
     atm_malloc(&temp_atm, &save_meta);
 
     char format[100], line[100];
-    sprintf(format, "%s%c%%%d[^'%c']%c%s%c%%%ds%c%s%c%%%ds%c%s%c%%%d[^'%c']%c%s%c%%%ds%c",
-        save_meta.tags[0], save_meta.separator, save_meta.data_sizes[0], save_meta.separator, save_meta.separator,
+    sprintf(format, "%s%c%%%dc%c%s%c%%%ds%c%s%c%%%ds%c%s%c%%%dc%c%s%c%%%ds%c",
+        save_meta.tags[0], save_meta.separator, save_meta.data_sizes[0], save_meta.separator,
         save_meta.tags[1], save_meta.separator, save_meta.data_sizes[1], save_meta.separator,
         save_meta.tags[2], save_meta.separator, save_meta.data_sizes[2], save_meta.separator,
-        save_meta.tags[3], save_meta.separator, save_meta.data_sizes[3] + 2, save_meta.separator, save_meta.separator,
+        save_meta.tags[3], save_meta.separator, save_meta.data_sizes[3] + 2, save_meta.separator,
         save_meta.tags[4], save_meta.separator, save_meta.data_sizes[4], save_meta.separator
     );
 
