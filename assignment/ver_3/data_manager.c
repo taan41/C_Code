@@ -83,7 +83,7 @@ void init_atm_list() {
     ATM temp_atm;
     atm_malloc(&temp_atm, &save_meta);
 
-    char format[100], line[100];
+    char format[100], line[150];
     sprintf(format, "%s%c%%%dc%c%s%c%%%ds%c%s%c%%%ds%c%s%c%%%dc%c%s%c%%%ds%c",
         save_meta.tags[0], save_meta.separator, save_meta.data_sizes[0], save_meta.separator,
         save_meta.tags[1], save_meta.separator, save_meta.data_sizes[1], save_meta.separator,
