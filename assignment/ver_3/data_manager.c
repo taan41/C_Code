@@ -97,7 +97,7 @@ void init_atm_list() {
     while(fscanf(file, "%[^\n]\n", line) == 1) {
         sscanf(line, format, temp_atm.name, temp_atm.account, temp_atm.pin, balance_buffer, attempt_buffer);
 
-        char *trim_ptr = temp_atm.name + strlen(temp_atm.name);
+        char *trim_ptr = temp_atm.name + save_meta.data_sizes[0] - 1;
         while(isspace(*--trim_ptr));
         *(trim_ptr + 1) = '\0';
 
