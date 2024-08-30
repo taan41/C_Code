@@ -18,9 +18,9 @@
 #define UI_WIDTH 50
 #define UI_PROMPT_MSG_LEN 21
 
-// Keys
-#define ESC         27
-#define CTRL_BACK   23
+// ASCII for keys
+#define ESC             27
+#define CTRL_BACKSPACE  23
 
 // Function prototypes
 
@@ -64,7 +64,7 @@ int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int i
 
         if(ch == '\n' || ch == '\r') break;
         switch(ch) {
-            case CTRL_BACK:
+            case CTRL_BACKSPACE:
                 if(input_size > 0) printf("\033[%dD%*s\033[%dD\033[0m", input_size, input_size, "", input_size);
                 if(is_exact_size) printf("\033[31m");
                 input_size = 0;

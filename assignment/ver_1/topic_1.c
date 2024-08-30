@@ -5,7 +5,6 @@
 #include <conio.h>
 #include <time.h>
 #include <math.h>
-#include "extrastuffs.c"
 
 #define UI_WIDTH 50
 #define UI_PROMPT_MSG_LENGTH 20
@@ -32,20 +31,16 @@ typedef struct ATM
 
 void atm_input(ATM *atm);
 void atm_save(ATM *atm);
-void atm_randomize(ATM *atm);
+void randomize_atm(ATM *atm);
 
 int unbuffered_input(char *target, size_t max_len, int mode, int is_censored);
-void prnt_line(size_t len, char ch);
-void prnt_menu();
+void print_line(size_t len, char ch);
+void print_menu();
 void flush();
 
 ATM GLB_ATM;
 
 int main() {
-    char test_buffer[11] = "testbuffer";
-    int testing = 1;
-    if(testing) goto test_label;
-
     ATM atm = {
         .name = "default name",
         .pin = "000000",
@@ -55,12 +50,12 @@ int main() {
     char ch;
 
     while(1) {
-        atm_randomize(&atm);
-        prnt_menu();
+        randomize_atm(&atm);
+        print_menu();
 
         atm_input(&atm);
 
-        prnt_line(UI_WIDTH, '-');
+        print_line(UI_WIDTH, '-');
         printf(
             " Successfully entered account info!\n"
             " Do you want to create ATM Card (save to file)? (Y/N): "
@@ -68,21 +63,11 @@ int main() {
         if((ch = getchar()) == 'Y' || ch == 'y') atm_save(&atm);
         flush();
 
-        prnt_line(UI_WIDTH, '-');
+        print_line(UI_WIDTH, '-');
         printf(" Do you want to add a new account? (Y/N): ");
         if((ch = getchar()) != 'Y' && ch != 'y') exit(0);
         flush();
     }
-
-
-    test_label:
-    if(!testing) goto done_testing_label;
-
-    printf("Test unbuffered input: ");
-    unbuffered_input(test_buffer, 10, 3, 0);
-    printf("\nInput: %s\n", test_buffer);
-
-    done_testing_label:
 
     return 0;
 }
@@ -92,11 +77,11 @@ int main() {
  * 
  * @param target        Con tro den bien luu du lieu, co the la char* hoac long long int*
  * @param length        Do dai toi da cua du lieu
- * @param list_compare  Danh sach kiem tra account no trung lap, NULL neu khong phai account no
+ * @param list_compare  Danh sach kiem tra account number trung lap, NULL neu du lieu khong phai account number
  * @param list_size
  * @param digit_only    Neu = 1 chi chap nhan 0-9, neu = 0 chi chap nhan A-z va ' '
  * @param return_lld    Neu = 1 luu du lieu duoi dang long long int, neu = 0 luu dang char*
- * @param exact_length  Neu = 1 du lieu phai co do dai bang 'length', neu = 0 co the ngan hon 'lenght'
+ * @param exact_length  Neu = 1 du lieu phai co do dai bang 'length', neu = 0 co the ngan hon 'length'
  * @param min_value     Neu 'return_lld' = 1 du lieu phai lon hon hoac bang 'min_value'
  * @param ui_prompt_msg Thong diep hien thi truoc khi nguoi dung nhap du lieu
  */
@@ -258,7 +243,7 @@ void atm_save(ATM *atm) {
     fclose(file);
 }
 
-void atm_randomize(ATM *atm) {
+void randomize_atm(ATM *atm) {
     char result[ATM_ACCOUNT_LEN + 1];
     result[0] = '\0';
 
@@ -317,18 +302,18 @@ int unbuffered_input(char *target_buffer, size_t max_buffer_size, int mode, int 
     return buffer_size;
 }
 
-void prnt_line(size_t len, char ch) {
+void print_line(size_t len, char ch) {
     while(len-- > 0) putchar(ch);
     putchar('\n');
 }
 
-void prnt_menu() {
+void print_menu() {
     system("cls");
-    prnt_line(UI_WIDTH, '=');
+    print_line(UI_WIDTH, '=');
     printf("%*s\n", (UI_WIDTH + strlen(BANK_NAME)) / 2, BANK_NAME);
-    prnt_line(UI_WIDTH, '=');
+    print_line(UI_WIDTH, '=');
     printf(" Creating ATM Cards...\n");
-    prnt_line(UI_WIDTH, '-');
+    print_line(UI_WIDTH, '-');
 
 }
 
