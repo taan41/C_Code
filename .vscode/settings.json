@@ -8,6 +8,11 @@
         "stdlib.h": "c",
         "cstdlib": "c",
         "string.h": "c",
+        "array": "c",
+        "string_view": "c",
+        "format": "c",
+        "initializer_list": "c",
+        "span": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

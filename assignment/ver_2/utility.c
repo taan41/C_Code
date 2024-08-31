@@ -66,7 +66,7 @@ void prnt_header();
 void prnt_invalid(char *msg, int input_size, char *ch);
 
 void standardize_str(char *str);
-void money_to_str(char *target_money_str, long long int money);
+void str_to_money(char *target_money_str, long long int money);
 void receipt(long long int withdraw_amount);
 int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_censored, char first_ch);
 int choice_input(int min, int max);
@@ -288,7 +288,7 @@ void standardize_str(char *str) {
 /**
  * @brief   Add dot every 3 digits and "VND" at the end
  */
-void money_to_str(char *target_money_str, long long int money) {
+void str_to_money(char *target_money_str, long long int money) {
     char money_str[ATM_BALANCE_LEN + 10];
     sprintf(money_str, "%lld", money);
     size_t len = strlen(money_str);
@@ -305,7 +305,7 @@ void money_to_str(char *target_money_str, long long int money) {
     strcpy(target_money_str, money_str);
 }
 
-void line_to_str(char *target, int double_line) {
+void str_to_line(char *target, int double_line) {
     int ch = double_line ? '=' : '-';
     for(int i = 0; i < UI_WIDTH; i++) target[i] = ch;
     target[UI_WIDTH] = '\n';
@@ -317,20 +317,20 @@ void receipt(long long int withdraw_amount) {
 
     char result_str[(UI_WIDTH + 1) * 18 + 1], line_write[UI_WIDTH + 2], buffer[101], buffer2[101];
 
-    line_to_str(line_write, 1);
+    str_to_line(line_write, 1);
     strcat(result_str, line_write);
 
     sprintf(line_write, "%*s\n", (UI_WIDTH + strlen(BANK_NAME)) / 2, BANK_NAME);
     strcat(result_str, line_write);
 
-    line_to_str(line_write, 1);
+    str_to_line(line_write, 1);
     strcat(result_str, line_write);
 
     sprintf(buffer, "BIEN LAI RUT TIEN TAI ATM");
     sprintf(line_write, "%*s\n", (UI_WIDTH + strlen(buffer)) / 2, buffer);
     strcat(result_str, line_write);
 
-    line_to_str(line_write, 0);
+    str_to_line(line_write, 0);
     strcat(result_str, line_write);
 
     time_t t;
@@ -364,30 +364,30 @@ void receipt(long long int withdraw_amount) {
     sprintf(line_write, "%s%*s\n", buffer, UI_WIDTH - strlen(buffer), "Rut tien mat tai AMT");
     strcat(result_str, line_write);
 
-    line_to_str(line_write, 0);
+    str_to_line(line_write, 0);
     strcat(result_str, line_write);
 
     sprintf(buffer, " So tien:");
-    money_to_str(buffer2, withdraw_amount);
+    str_to_money(buffer2, withdraw_amount);
     sprintf(line_write, "%s%*s\n", buffer, UI_WIDTH - strlen(buffer), buffer2);
     strcat(result_str, line_write);
 
     sprintf(buffer, " Le phi:");
-    money_to_str(buffer2, 1000);
+    str_to_money(buffer2, 1000);
     sprintf(line_write, "%s%*s\n", buffer, UI_WIDTH - strlen(buffer), buffer2);
     strcat(result_str, line_write);
 
     sprintf(buffer, " VAT:");
-    money_to_str(buffer2, 100);
+    str_to_money(buffer2, 100);
     sprintf(line_write, "%s%*s\n", buffer, UI_WIDTH - strlen(buffer), buffer2);
     strcat(result_str, line_write);
 
     sprintf(buffer, " So du:");
-    money_to_str(buffer2, cur_atm_ptr->balance);
+    str_to_money(buffer2, cur_atm_ptr->balance);
     sprintf(line_write, "%s%*s\n", buffer, UI_WIDTH - strlen(buffer), buffer2);
     strcat(result_str, line_write);
 
-    line_to_str(line_write, 0);
+    str_to_line(line_write, 0);
     strcat(result_str, line_write);
 
     char end_msg_1[] = "Cam on quy khach da su dung",
@@ -398,7 +398,7 @@ void receipt(long long int withdraw_amount) {
     sprintf(line_write, "%*s\n", (UI_WIDTH + strlen(end_msg_2)) / 2, end_msg_2);
     strcat(result_str, line_write);
 
-    line_to_str(line_write, 1);
+    str_to_line(line_write, 1);
     strcat(result_str, line_write);
 
     printf("%s", result_str);

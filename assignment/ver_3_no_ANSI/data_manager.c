@@ -35,7 +35,7 @@ void free_everything();
 
 // Global variables
 
-ATM *cur_atm_ptr = NULL, *atm_list = NULL;
+ATM *cur_atm_ptr, *atm_list = NULL;
 size_t atm_list_size = 0, atm_list_buffer_size = 10;
 int cur_index = -1;
 
@@ -210,7 +210,7 @@ int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_
             prnt_invalid("Account Is Locked, Please Contact Customer Service", 0, ch);
             return OP_FAILED;
         }
-        if((*input_size = unbuffered_input(input, main_meta.data_sizes[2], 1, 1, is_censored, *ch)) == OP_CANCELLED) return OP_CANCELLED;
+        if((*input_size = unbuffered_input(input, main_meta.data_sizes[2], 1, is_censored, *ch)) == OP_CANCELLED) return OP_CANCELLED;
         if(*input_size == main_meta.data_sizes[2]) {
             if(atm_to_check != NULL) {
                 if(strcmp(input, atm_to_check->pin) != 0) {
@@ -238,7 +238,7 @@ int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_
 /**
  * @brief   Withdraw money from cur_atm_ptr->balance, keep taking input until valid amount or ESC entered
  * 
- * @param mode  0: Creating acc, 1: Withdrawing, 2: Transfering
+ * @param mode  1: Withdrawing, 2: Transfering
  * 
  * @return  Withdraw amount, OP_CANCELLED if ESC
  */
@@ -263,7 +263,7 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
     
     printf(" Enter the Amount: ");
     while(1) {
-        if((*input_size = unbuffered_input(input, main_meta.data_sizes[3], 0, 1, 0, *ch)) == -1) return OP_CANCELLED;
+        if((*input_size = unbuffered_input(input, main_meta.data_sizes[3], 1, 0, *ch)) == -1) return OP_CANCELLED;
 
         withdraw_amount = strtoll(input, NULL, 10);
         if(*input_size == 0 || withdraw_amount == 0) prnt_invalid("Invalid Ammount", *input_size, ch);
@@ -282,7 +282,7 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
  * @param withdraw_mode     1: Withdraw cash, 2: Transfer
  */
 void receipt(long long int withdraw_amount, int withdraw_mode) {
-    printf("\033[1;1H\033[J");
+    system("cls");
     MKDIR("receipts");
 
     char result_str[(UI_WIDTH + 1) * 18 + 1], line_write[UI_WIDTH + 2], buffer[101], buffer2[101];
@@ -330,8 +330,8 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     sprintf(line_write, "%s%*s \n", buffer, UI_WIDTH - strlen(buffer) - 1, buffer2);
     strcat(result_str, line_write);
 
-    char receipt_name[100];
-    sprintf(receipt_name, "receipts\\receipt-%s.txt", buffer2);
+    char receipt_file_name[100];
+    sprintf(receipt_file_name, "receipts\\receipt-%s.txt", buffer2);
 
     sprintf(buffer, " Noi dung:");
     switch(withdraw_mode) {
@@ -368,13 +368,11 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     strcat(result_str, line_write);
 
     sprintf(buffer, "Cam on quy khach da su dung"),
-    pad = (UI_WIDTH + strlen(buffer)) / 2;
-    sprintf(line_write, "%*s%*s\n", pad, buffer, UI_WIDTH - pad, "");
+    sprintf(line_write, "%*s\n", (UI_WIDTH + strlen(buffer)) / 2, buffer);
     strcat(result_str, line_write);
 
     sprintf(buffer, "dich vu cua chung toi!");
-    pad = (UI_WIDTH + strlen(buffer)) / 2;
-    sprintf(line_write, "%*s%*s\n", pad, buffer, UI_WIDTH - pad, "");
+    sprintf(line_write, "%*s\n", (UI_WIDTH + strlen(buffer)) / 2, buffer);
     strcat(result_str, line_write);
 
     str_to_line(line_write, 1);
@@ -382,13 +380,12 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
 
     printf("%s", result_str);
 
-    FILE *file = fopen(receipt_name, "w");
+    FILE *file = fopen(receipt_file_name, "w");
     fprintf(file, "%s", result_str);
     fclose(file);
 }
 
 void free_everything() {
-    for(int i = 0; i < atm_list_size; i++) 
     for(int i = 0; i < atm_list_size; i++) {
         free(atm_list[i].name);
         free(atm_list[i].account);

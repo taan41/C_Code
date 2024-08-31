@@ -50,7 +50,7 @@ int log_in();
 void load_atm_list();
 void modify_file(int atm_index, char *data_name, size_t data_len, char *modded_data);
 
-void money_to_str(char *target_money_str, long long int money);
+void str_to_money(char *target_money_str, long long int money);
 size_t input_unbuffered(char *target, size_t len, int digit_only, int hiding, char *prompt_msg, size_t prompt_len);
 
 void prnt_invalid_prompt(char *prompt_msg, char *invalid_msg, size_t prompt_len, size_t input_len);
@@ -121,7 +121,7 @@ void check_acc() {
     prnt_line(UI_WIDTH, '-');
 
     char balance[ATM_BALANCE_LEN + 5];
-    money_to_str(balance, CUR_ATM->balance);
+    str_to_money(balance, CUR_ATM->balance);
     printf(
         " %-*s%s\n %-*s%s\n %-*s%s\n",
         UI_CHECK_ACC_PROMPT_LEN, "Account name:", CUR_ATM->name,
@@ -148,7 +148,7 @@ void withdraw() {
         system("cls");
         prnt_header();
 
-        money_to_str(balance, CUR_ATM->balance);
+        str_to_money(balance, CUR_ATM->balance);
         printf(
             " Withdrawing money...\n"
             " Current balance: %s\n",
@@ -217,7 +217,7 @@ void withdraw() {
                     }
                     else {
                         char confirm, withdraw_amount_str[ATM_BALANCE_LEN + 5];
-                        money_to_str(withdraw_amount_str, withdraw_amount);
+                        str_to_money(withdraw_amount_str, withdraw_amount);
                         printf(
                             "\r%*s\r Withdrawing %s...\n"
                             " Please confirm (Y/N): ",
@@ -308,13 +308,13 @@ void receipt(long long int withdraw_amount) {
     printf("%*s\r Noi dung:\n", UI_WIDTH, "Rut tien mat tai ATM");
     prnt_line(UI_WIDTH, '-');
 
-    money_to_str(buffer, withdraw_amount);
+    str_to_money(buffer, withdraw_amount);
     printf("%*s\r So tien:\n", UI_WIDTH, buffer);
-    money_to_str(buffer, 1000);
+    str_to_money(buffer, 1000);
     printf("%*s\r Le phi:\n", UI_WIDTH, buffer);
-    money_to_str(buffer, 100);
+    str_to_money(buffer, 100);
     printf("%*s\r VAT:\n", UI_WIDTH, buffer);
-    money_to_str(buffer, CUR_ATM->balance);
+    str_to_money(buffer, CUR_ATM->balance);
     printf("%*s\r So du:\n", UI_WIDTH, buffer);
 
     prnt_line(UI_WIDTH, '-');
@@ -336,7 +336,7 @@ void transfer() {
     system("cls");
     prnt_header();
 
-    money_to_str(buffer, CUR_ATM->balance);
+    str_to_money(buffer, CUR_ATM->balance);
     printf(
         " Transfering money...\n"
         " Current balance: %s\n",
@@ -394,7 +394,7 @@ void transfer() {
     }
 
     prnt_line(UI_WIDTH, '-');
-    money_to_str(buffer, transfer_amount);
+    str_to_money(buffer, transfer_amount);
     printf(
         " Successfully transfered %s!\n"
         " Press any key to continue...",
@@ -701,7 +701,7 @@ void prnt_main_screen() {
     prnt_menu();
 }
 
-void money_to_str(char *target_money_str, long long int money) {
+void str_to_money(char *target_money_str, long long int money) {
     char money_str[ATM_BALANCE_LEN + 5];
     sprintf(money_str, "%lld", money);
     size_t len = strlen(money_str);

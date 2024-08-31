@@ -16,12 +16,12 @@ int main() {
     while(1) {
         switch(welcome_scr()) {
             case 1:
-                while(creating_scr() == OP_LOOP);
+                while(creating_scr() == OP_LOOPING);
                 continue;
 
             case 2:
                 switch(login_scr()) {
-                    case OP_FINISHED: while(acc_mng_scr() == OP_LOOP);
+                    case OP_FINISHED: while(acc_mng_scr() == OP_LOOPING);
                     case OP_CANCELLED: continue;
                 }
 
@@ -125,7 +125,7 @@ int creating_scr() {
     prnt_ui_line(0);
     printf(" Press ESC to return, any other key to continue making accounts.");
     if(_getch() == 27) return OP_FINISHED;
-    return OP_LOOP;
+    return OP_LOOPING;
 }
 
 /**
@@ -196,12 +196,12 @@ int acc_mng_scr() {
     switch(choice_input(0, 4)) {
         case 1: 
             prnt_ui_line(0);
-            money_to_str(money_str, cur_atm_ptr->balance);
+            str_to_money(money_str, cur_atm_ptr->balance);
             printf(" Current Balance: %s\n Press any key to continue...", money_str);
             _getch();
             break;
-        case 2: while(withdraw_scr() == OP_LOOP); break;
-        case 3: while(transfer_scr() == OP_LOOP); break;
+        case 2: while(withdraw_scr() == OP_LOOPING); break;
+        case 3: while(transfer_scr() == OP_LOOPING); break;
         case 4: pin_chng_scr(); break;
         case 0:
             prnt_ui_line(0);
@@ -210,7 +210,7 @@ int acc_mng_scr() {
             return OP_FINISHED;
     }
 
-    return OP_LOOP;
+    return OP_LOOPING;
 }
 
 /**
@@ -226,7 +226,7 @@ int withdraw_scr() {
     printf(" Withdrawing Cash...\n Press ESC to Cancel.\n");
     prnt_ui_line(0);
 
-    money_to_str(money_str, cur_atm_ptr->balance);
+    str_to_money(money_str, cur_atm_ptr->balance);
     printf(" Account Balance: %s\n", money_str);
     prnt_ui_line(0);
     
@@ -252,13 +252,13 @@ int withdraw_scr() {
         case -1: return OP_CANCELLED;
     }
 
-    money_to_str(money_str, withdraw_amount);
+    str_to_money(money_str, withdraw_amount);
     printf(" Withdraw amount: %s\n Please confirm. (Y/N): ", money_str);
 
     if(yes_no_input()) {
         printf(" Withdrawed successfully %s!\n", money_str);
         cur_atm_ptr->balance -= withdraw_amount;
-        money_to_str(money_str, cur_atm_ptr->balance);
+        str_to_money(money_str, cur_atm_ptr->balance);
         printf(" Remaining balance: %s\n", money_str);
 
         prnt_ui_line(0);
@@ -276,7 +276,7 @@ int withdraw_scr() {
     prnt_ui_line(0);
     printf(" Press ESC to return, any other key to continue withdrawing.");
     if(_getch() == 27) return OP_FINISHED;
-    return OP_LOOP;
+    return OP_LOOPING;
 }
 
 /**
@@ -293,7 +293,7 @@ int transfer_scr() {
     printf(" Transfering Money...\n Press ESC to Cancel.\n");
     prnt_ui_line(0);
 
-    money_to_str(money_str, cur_atm_ptr->balance);
+    str_to_money(money_str, cur_atm_ptr->balance);
     printf(" Current Balance: %s\n", money_str);
     prnt_ui_line(0);
 
@@ -320,12 +320,12 @@ int transfer_scr() {
         " Please Confirm Target Account. (Y/N): ",
         UI_PROMPT_MSG_LEN, " Account Name:", target_atm->name
     );
-    if(!yes_no_input()) return OP_LOOP;
+    if(!yes_no_input()) return OP_LOOPING;
 
     if((transfer_amount = get_money(input, &input_size, &ch)) == OP_CANCELLED) return OP_CANCELLED;
     prnt_ui_line(0);
 
-    money_to_str(money_str, transfer_amount);
+    str_to_money(money_str, transfer_amount);
     printf(" Transfer amount: %s\n Please confirm. (Y/N): ", money_str);
 
     if(yes_no_input()) {
@@ -343,7 +343,7 @@ int transfer_scr() {
     prnt_ui_line(0);
     printf(" Press ESC to return, any other key to continue withdrawing.");
     if(_getch() == 27) return OP_FINISHED;
-    return OP_LOOP;
+    return OP_LOOPING;
 }
 
 /**
