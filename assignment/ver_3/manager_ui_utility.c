@@ -14,14 +14,16 @@
 
 // UI 
 
-#define UI_WIDTH 50
-#define UI_PROMPT_MSG_LEN 23
-#define UI_CURRENCY " VND"
+#define UI_WIDTH            50
+#define UI_PROMPT_MSG_LEN   23
+#define UI_CURRENCY         " VND"
 
 // ASCII for keys
 
 #define ESC_KEY         27
 #define CTRL_BACKSPACE  23
+
+#define BUFFER_SIZE     100
 
 // Function prototypes
 
@@ -54,6 +56,7 @@ void str_to_line(char *target, int double_line);
 int unbuffered_input(char *target_buffer, int max_size, int is_exact_size, int input_mode, int is_censored, char first_ch) {
     int input_size = 0;
     char ch, input[max_size + 1], full_censored[max_size + 1];
+    memset(input, '\0', max_size + 1);
     memset(full_censored, '*', max_size);
     full_censored[max_size] = '\0';
 
@@ -147,7 +150,7 @@ int yes_no_input() {
     int input_size;
     char input[2];
     while(1) {
-        input[0] = '\0';
+        memset(input, '\0', 2);
         input_size = unbuffered_input(input, 1, 0, 2, 0, 0);
         if(input[0] == 'Y' || input[0] == 'y' || input_size == 0) {
             putchar('\n');
@@ -222,20 +225,21 @@ void standardize_str(char *str) {
  * @param target_str  Should point to sizable buffer
  */
 void str_to_money(char *target_money_str, long long int money) {
-    char money_str[main_meta.data_sizes[3] + 15];
+    static char money_str[BUFFER_SIZE];
+    memset(money_str, '\0', BUFFER_SIZE);
     sprintf(money_str, "%lld", money);
     int size = strlen(money_str);
 
     int dot_count = 0;
     for(int i = 0; i < size; i++) {
-        if((size - i) % 3 == 0 && i) {
+        if((size - i) % 3 == 0 && i > 0) {
             memmove(money_str + i + dot_count + 1, money_str + i + dot_count, size - i);
             money_str[i + dot_count++] = '.';
         }
     }
-    money_str[size + dot_count] = '\0';
-    strcat(money_str, UI_CURRENCY);
-    strcpy(target_money_str, money_str);
+
+    strcat(result_str, UI_CURRENCY);
+    sprintf(target_money_str, "%s", result_str);
 }
 
 void str_to_line(char *target, int double_line) {

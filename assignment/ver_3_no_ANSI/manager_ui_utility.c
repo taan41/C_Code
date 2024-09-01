@@ -14,14 +14,16 @@
 
 // UI 
 
-#define UI_WIDTH 50
-#define UI_PROMPT_MSG_LEN 23
-#define UI_CURRENCY " VND"
+#define UI_WIDTH            50
+#define UI_PROMPT_MSG_LEN   23
+#define UI_CURRENCY         " VND"
 
 // ASCII for keys
 
 #define ESC_KEY         27
 #define CTRL_BACKSPACE  23
+
+#define BUFFER_SIZE     100
 
 // Function prototypes
 
@@ -53,6 +55,7 @@ void str_to_line(char *target, int double_line);
 int unbuffered_input(char *target_buffer, int max_size, int input_mode, int is_censored, char first_ch) {
     int input_size = 0;
     char ch, input[max_size + 1];
+    memset(input, '\0', max_size + 1);
 
     while(1) {
         if(first_ch != 0) {
@@ -219,7 +222,8 @@ void standardize_str(char *str) {
  * @param target_str  Should point to sizable buffer
  */
 void str_to_money(char *target_str, long long int money) {
-    char money_str[main_meta.data_sizes[3] + 15];
+    char money_str[BUFFER_SIZE];
+    memset(money_str, '\0', BUFFER_SIZE);
     sprintf(money_str, "%lld", money);
     int size = strlen(money_str);
 
@@ -230,7 +234,7 @@ void str_to_money(char *target_str, long long int money) {
             money_str[i + dot_count++] = '.';
         }
     }
-    money_str[size + dot_count] = '\0';
+    
     strcat(money_str, UI_CURRENCY);
     strcpy(target_str, money_str);
 }

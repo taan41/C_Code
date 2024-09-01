@@ -9,10 +9,11 @@
 
 typedef struct ATM_METADATA{
     char separator;
+
     // 0: Name, 1: Account, 2: PIN, 3: Balance, 4: PIN Attempts
     size_t data_sizes[5];
-    // 0: Name, 1: Account, 2: PIN, 3: Balance, 4: PIN Attempts
     char *tags[5];
+
     long long int bal_create_min;
     long long int bal_withdraw_max;
     char *bank_name;

@@ -8,11 +8,10 @@
 
 
 int main() {
-    char ch;
-    // setbuf(stdin, NULL);
-    setvbuf(stdin, NULL, _IONBF, BUFSIZ);
-    setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+    char str1[10], str2[20];
+    memset(str2, 'a', 20);
+    strcpy(str1, str2);
 
-    while((ch = getch()) != '0') putchar(ch);
+    printf("%s", str1);
 
 }

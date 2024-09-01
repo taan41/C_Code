@@ -74,7 +74,7 @@ void init_atm_list() {
     ATM temp_atm;
     atm_malloc(&temp_atm, &save_meta);
 
-    char format[100], line[150];
+    char format[BUFFER_SIZE], line[150];
     sprintf(format, "%s%c%%%dc%c%s%c%%%ds%c%s%c%%%ds%c%s%c%%%dc%c%s%c%%%ds%c",
         save_meta.tags[0], save_meta.separator, save_meta.data_sizes[0], save_meta.separator,
         save_meta.tags[1], save_meta.separator, save_meta.data_sizes[1], save_meta.separator,
@@ -176,19 +176,31 @@ void random_account(char *name, char *account, char *pin, char *balance) {
     int fname_rand = rand() % (sizeof(first_names) / sizeof(first_names[0]));
 
     sprintf(name, "%s %s %s", last_names[lname_rand], middle_names[mname_rand], first_names[fname_rand]);
-    sprintf(account, "%04d%04d%04d%02d", rand() % 10000, rand() % 10000, rand() % 10000, rand() % 100);
-    sprintf(pin, "%03d%03d", rand() % 1000, rand() % 1000);
+
+    char rand_num;
+    memset(account, '\0', main_meta.data_sizes[1] + 1);
+    for(int i = 0; i < main_meta.data_sizes[1]; i++) {
+        rand_num = rand() % 10 + '0';
+        strncat(account, &rand_num, 1);
+    }
+
+    memset(pin, '\0', main_meta.data_sizes[2] + 1);
+    for(int i = 0; i < main_meta.data_sizes[2]; i++) {
+        rand_num = rand() % 10 + '0';
+        strncat(pin, &rand_num, 1);
+    }
+
     sprintf(balance, "%d00000", rand() % 10000);
 }
 
 /**
  * @param data_type    0: Name, 1: Account, 2: Pin, 3: Balance
  * 
- * @return  0: Invalid, 1: Valid, -1: Duped acc ('data_type' = 1)
+ * @return  0: Invalid, 1: Valid, 2: Duped acc, 3: Under Min Balance
  */
 int validate_created_data(char *data, int data_size, int data_type) {
-    if(data_type == 1) for(int i = 0; i < atm_list_size; i++) if(strcmp(data, atm_list[i].account) == 0) return -1;
-    if(data_type == 3 && strtoll(data, NULL, 10) < main_meta.bal_create_min) return 0;
+    if(data_type == 1) for(int i = 0; i < atm_list_size; i++) if(strcmp(data, atm_list[i].account) == 0) return 2;
+    if(data_type == 3 && strtoll(data, NULL, 10) < main_meta.bal_create_min) return 3;
     return (data_type == 1 || data_type == 2) ? data_size == main_meta.data_sizes[data_type] : (data_size > 0 && data_size <= main_meta.data_sizes[data_type]);
 }
 
@@ -199,7 +211,7 @@ int validate_created_data(char *data, int data_size, int data_type) {
  */
 int account_input(char *input, int *input_size, char *ch) {
     int acc_index = -1;
-    char invalid_msg[100];
+    char invalid_msg[BUFFER_SIZE];
     while(1) {
         if((*input_size = unbuffered_input(input, main_meta.data_sizes[1], 1, 0, *ch)) == OP_CANCELLED) return OP_CANCELLED;
         if(*input_size == main_meta.data_sizes[1]) {
@@ -236,7 +248,7 @@ int account_input(char *input, int *input_size, char *ch) {
 int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_censored) {
     *ch = 0;
 
-    char invalid_msg[100], attempts_str[10];
+    char invalid_msg[BUFFER_SIZE], attempts_str[10];
     while(1) {
         if(atm_to_check != NULL && atm_to_check->PIN_attempt == 0) {
             prnt_invalid("Account Is Locked, Please Contact Customer Service", 0, ch);
@@ -282,14 +294,14 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
     long long int withdraw_amount = 0;
     *ch = 0;
 
-    char max_withdraw[100];
+    char max_withdraw[BUFFER_SIZE];
     str_to_money(max_withdraw, main_meta.bal_withdraw_max);
-    char overwithdraw_msg[100] = "Must Be Under ";
+    char overwithdraw_msg[BUFFER_SIZE] = "Must Be Under ";
     strcat(overwithdraw_msg, max_withdraw);
 
-    char min_transfer[100];
+    char min_transfer[BUFFER_SIZE];
     str_to_money(min_transfer, 10000);
-    char undertransfer_msg[100] = "Must Be Over ";
+    char undertransfer_msg[BUFFER_SIZE] = "Must Be Over ";
     strcat(undertransfer_msg, min_transfer);
 
     switch(mode) {
@@ -297,7 +309,7 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
         case 2: printf(" Minimum Transfer Amount: %s\n", min_transfer); break;
     }
     
-    printf(" Enter the Amount: ");
+    printf(" Enter The Amount: ");
     while(1) {
         if((*input_size = unbuffered_input(input, main_meta.data_sizes[3], 1, 0, *ch)) == -1) return OP_CANCELLED;
 
@@ -321,7 +333,7 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     system("cls");
     _mkdir("receipts");
 
-    char result_str[(UI_WIDTH + 1) * 18 + 1], line_write[UI_WIDTH + 2], buffer[101], buffer2[101];
+    char result_str[(UI_WIDTH + 1) * 18 + 1], line_write[UI_WIDTH + 2], buffer[BUFFER_SIZE], buffer2[BUFFER_SIZE];
     int pad;
     result_str[0] = '\0';
 
@@ -349,8 +361,8 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     time(&t);
     tm_info = localtime(&t);
     
-    strftime(buffer, 100, " Ngay: %x", tm_info);
-    strftime(buffer2, 100, "Gio: %X", tm_info);
+    strftime(buffer, 100, " Ngay: %d/%m/%Y", tm_info);
+    strftime(buffer2, BUFFER_SIZE, "Gio: %X", tm_info);
     sprintf(line_write, "%s%*s \n", buffer, UI_WIDTH - strlen(buffer) - 1, buffer2);
     strcat(result_str, line_write);
 
@@ -361,12 +373,12 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     strcat(result_str, line_write);
 
     sprintf(buffer, " So giao dich:");
-    strftime(buffer2, 100, "%y%m%d%H%M%S", tm_info);
+    strftime(buffer2, BUFFER_SIZE, "%y%m%d%H%M%S", tm_info);
     sprintf(buffer2 + strlen(buffer2), "%d", rand() % 10000);
     sprintf(line_write, "%s%*s \n", buffer, UI_WIDTH - strlen(buffer) - 1, buffer2);
     strcat(result_str, line_write);
 
-    char receipt_file_name[100];
+    char receipt_file_name[BUFFER_SIZE];
     sprintf(receipt_file_name, "receipts\\receipt-%s.txt", buffer2);
 
     sprintf(buffer, " Noi dung:");
