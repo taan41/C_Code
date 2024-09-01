@@ -1,12 +1,9 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
 #include <conio.h>
 
-#include "metadata_manager.c"
+#include "manager_metadata.c"
 
 // Operation states
 

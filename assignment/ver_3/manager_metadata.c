@@ -1,17 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <direct.h>
 
 // Defines
-
-#ifdef _WIN32
-    #include <direct.h>  // For _mkdir on Windows
-    #define MKDIR(dir) _mkdir(dir)
-#else
-    #include <sys/stat.h>  // For mkdir on Unix/Linux
-    #include <sys/types.h>
-    #define MKDIR(dir) mkdir(dir, 0777)
-#endif
 
 #define META_FILE "data\\metadata.dat"
 
@@ -49,7 +41,7 @@ ATM_METADATA default_meta = {
 // Function definitions
 
 void init_meta_manager() {
-    MKDIR("data");
+    _mkdir("data");
     switch(meta_from_file(&main_meta, META_FILE)) {
         case 0: break;
         case 1: case 2:

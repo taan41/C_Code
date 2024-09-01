@@ -1,4 +1,4 @@
-#include "utility.c"
+#include "manager_ui_utility.c"
 
 // Defines
 
@@ -44,7 +44,7 @@ int cur_atm_index = -1;
 // Function definitions
 
 void init_data_manager() {
-    MKDIR("data");
+    _mkdir("data");
     init_meta_manager();
     init_atm_list();
     reprnt_save_file();
@@ -319,7 +319,7 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
  */
 void receipt(long long int withdraw_amount, int withdraw_mode) {
     system("cls");
-    MKDIR("receipts");
+    _mkdir("receipts");
 
     char result_str[(UI_WIDTH + 1) * 18 + 1], line_write[UI_WIDTH + 2], buffer[101], buffer2[101];
     int pad;

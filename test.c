@@ -6,32 +6,13 @@
 #include <conio.h>
 #include <math.h>
 
-typedef struct test {
-    int a;
-    char *b;
-}test;
 
 int main() {
-    test test_list[3] = {
-        {1, "01"},
-        {2, "02"},
-        {3, "03"}
-    };
+    char ch;
+    // setbuf(stdin, NULL);
+    setvbuf(stdin, NULL, _IONBF, BUFSIZ);
+    setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-    FILE *file = fopen("test-file.dat", "wb");
+    while((ch = getch()) != '0') putchar(ch);
 
-    fwrite(test_list, sizeof(test), 3, file);
-
-    fclose(file);
-
-    file = fopen("test-file.dat", "rb");
-
-    test *test_list_b = malloc(3 * sizeof(test));
-
-    fread(test_list_b, sizeof(test), 3, file);
-
-    for(int i = 0; i < 3; i++) printf("%s\n", test_list_b[i].b);
-
-    free(test_list_b);
-    fclose(file);
 }

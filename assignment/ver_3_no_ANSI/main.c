@@ -1,4 +1,6 @@
-#include "data_manager.c"
+#include "manager_atm_data.c"
+
+/* Can only run on Windows due to <conio.h> header */
 
 int welcome_scr();
 int creating_scr();
