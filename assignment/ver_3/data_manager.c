@@ -28,16 +28,18 @@ void update_atm_file(int atm_index, int data_type, char *modified_data);
 void random_account(char *name, char *account, char *pin, char *balance);
 int validate_created_data(char *data, int data_size, int data_type);
 
+int account_input(char *input, int *input_size, char *ch);
 int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_censored);
 long long int money_input(char *input, int *input_size, char *ch, int mode);
 void receipt(long long int withdraw_amount, int withdraw_mode);
+void free_atm(ATM *atm);
 void free_everything();
 
 // Global variables
 
 ATM *cur_atm_ptr = NULL, *atm_list = NULL;
 size_t atm_list_size = 0, atm_list_buffer_size = 10;
-int cur_index = -1;
+int cur_atm_index = -1;
 
 // Function definitions
 
@@ -191,6 +193,36 @@ int validate_created_data(char *data, int data_size, int data_type) {
 }
 
 /**
+ * @brief   Keep taking input until valid account or ESC entered
+ * 
+ * @return  Account index or OP_CANCELLED if ESC
+ */
+int account_input(char *input, int *input_size, char *ch) {
+    int acc_index = -1;
+    char invalid_msg[100];
+    while(1) {
+        if((*input_size = unbuffered_input(input, main_meta.data_sizes[1], 1, 1, 0, *ch)) == OP_CANCELLED) return OP_CANCELLED;
+        if(*input_size == main_meta.data_sizes[1]) {
+            for(int i = 0; i < atm_list_size; i++) {
+                if(strcmp(input, atm_list[i].account) == 0) {
+                    acc_index = i;
+                    break;
+                }
+            }
+            if(acc_index != -1) break;
+
+            prnt_invalid("Unregistered Account", *input_size, ch);
+            continue;
+        }
+        
+        sprintf(invalid_msg, "Invalid Account (Not %d Digits)", main_meta.data_sizes[1]);
+        prnt_invalid(invalid_msg, *input_size, ch);
+    }
+    putchar('\n');
+    return acc_index;
+}
+
+/**
  * @brief   Keep taking input until valid PIN or ESC entered
  * 
  * @param input             Allocated char* to store input
@@ -204,7 +236,7 @@ int validate_created_data(char *data, int data_size, int data_type) {
 int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_censored) {
     *ch = 0;
 
-    char incorrect_msg[100], attempts_str[10];
+    char invalid_msg[100], attempts_str[10];
     while(1) {
         if(atm_to_check != NULL && atm_to_check->PIN_attempt == 0) {
             prnt_invalid("Account Is Locked, Please Contact Customer Service", 0, ch);
@@ -215,20 +247,24 @@ int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_
             if(atm_to_check != NULL) {
                 if(strcmp(input, atm_to_check->pin) != 0) {
                     (atm_to_check->PIN_attempt)--;
-                    if(atm_to_check->PIN_attempt < 5 && atm_to_check->PIN_attempt >= 0) sprintf(incorrect_msg, "Incorrect PIN, %d Attempts Left", atm_to_check->PIN_attempt);
-                    else sprintf(incorrect_msg, "Incorrect PIN");
-                    prnt_invalid(incorrect_msg, *input_size, ch);
+                    if(atm_to_check->PIN_attempt < 5 && atm_to_check->PIN_attempt >= 0) sprintf(invalid_msg, "Incorrect PIN, %d Attempts Left", atm_to_check->PIN_attempt);
+                    else sprintf(invalid_msg, "Incorrect PIN");
+                    prnt_invalid(invalid_msg, *input_size, ch);
 
                     sprintf(attempts_str, "%d", atm_to_check->PIN_attempt);
-                    update_atm_file(cur_index, 4, attempts_str);
+                    update_atm_file(cur_atm_index, 4, attempts_str);
                     continue;
                 }
                 atm_to_check->PIN_attempt = DEFAULT_ATTEMPTS_AMOUNT;
                 sprintf(attempts_str, "%d", DEFAULT_ATTEMPTS_AMOUNT);
-                update_atm_file(cur_index, 4, attempts_str);
+                update_atm_file(cur_atm_index, 4, attempts_str);
             }
             break;
-        } else prnt_invalid("Invalid PIN", *input_size, ch);
+        }
+        else {
+            sprintf(invalid_msg, "Invalid PIN (Not %d Digits)", main_meta.data_sizes[2]);
+            prnt_invalid(invalid_msg, *input_size, ch);
+        }
     }
     putchar('\n');
 
@@ -387,12 +423,13 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     fclose(file);
 }
 
+void free_atm(ATM *atm) {
+    free(atm->name);
+    free(atm->account);
+    free(atm->pin);
+}
+
 void free_everything() {
-    for(int i = 0; i < atm_list_size; i++) 
-    for(int i = 0; i < atm_list_size; i++) {
-        free(atm_list[i].name);
-        free(atm_list[i].account);
-        free(atm_list[i].pin);
-    }
+    for(int i = 0; i < atm_list_size; i++) free(atm_list + i);
     free(atm_list);
 }

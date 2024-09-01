@@ -81,7 +81,7 @@ int creating_scr() {
     );
     prnt_ui_line(0);
 
-    char *data_tags[4] = {"Account Name", "Account", "PIN", "Balance"};
+    char *data_tags[4] = {"Account Name", "Account Number", "PIN", "Balance"};
     int input_mode[4] = {2, 1, 1, 1};
 
     char atm_buffer[5][100], input[100], prompt_msg[100], invalid_msg[100], ch;
@@ -92,10 +92,8 @@ int creating_scr() {
     for(int i = 0; i < 4; i++) {
         ch = 0;
         changed = 1;
-
-        if(i == 1 || i == 2) sprintf(prompt_msg, " Enter %s (%d digits):", data_tags[i], main_meta.data_sizes[i]);
-        else sprintf(prompt_msg, " Enter %s: ", data_tags[i]);
-        printf("%-*s", UI_PROMPT_MSG_LEN + 7, prompt_msg);
+        sprintf(prompt_msg, " Enter %s: ", data_tags[i]);
+        printf("%-*s", UI_PROMPT_MSG_LEN, prompt_msg);
 
         while(1) {
             strcpy(input, atm_buffer[i]);
@@ -108,7 +106,10 @@ int creating_scr() {
 
             int valid = validate_created_data(input, input_size, i);
             if(valid == 1) break;
-            if(valid == 0) sprintf(invalid_msg, "Invalid %s", data_tags[i]);
+            if(valid == 0) {
+                if(i == 1 || i == 2) sprintf(invalid_msg, "Invalid %s (Not %d Digits)", data_tags[i], main_meta.data_sizes[i]);
+                else sprintf(invalid_msg, "Invalid %s", data_tags[i]);
+            }
             if(valid == -1) sprintf(invalid_msg, "Duplicated %s", data_tags[i]);
 
             prnt_invalid(invalid_msg, input_size, &ch);
@@ -153,28 +154,10 @@ int login_scr() {
     char input[100], prompt[UI_PROMPT_MSG_LEN + 1], ch = 0;
     int input_size;
 
-    sprintf(prompt, " Enter Account No:");
+    sprintf(prompt, " Enter Account Number:");
     printf("%-*s", UI_PROMPT_MSG_LEN, prompt);
-    cur_index = -1;
-    while(1) {
-        if((input_size = unbuffered_input(input, main_meta.data_sizes[1], 1, 0, ch)) == OP_CANCELLED) return OP_CANCELLED;
-        if(input_size == main_meta.data_sizes[1]) {
-            for(int i = 0; i < atm_list_size; i++) {
-                if(strcmp(input, atm_list[i].account) == 0) {
-                    cur_index = i;
-                    cur_atm_ptr = &atm_list[i];
-                    break;
-                }
-            }
-            if(cur_index != -1) break;
-
-            prnt_invalid("Unregistered Account", input_size, &ch);
-            continue;
-        }
-        
-        prnt_invalid("Invalid Account", input_size, &ch);
-    }
-    putchar('\n');
+    if((cur_atm_index = account_input(input, &input_size, &ch)) == OP_CANCELLED) return OP_CANCELLED;
+    cur_atm_ptr = atm_list + cur_atm_index;
 
     ch = 0;
     sprintf(prompt, " Enter PIN:");
@@ -219,10 +202,10 @@ int acc_mng_scr() {
             break;
         case 2: while(withdraw_scr() == OP_LOOPING); break;
         case 3: while(transfer_scr() == OP_LOOPING); break;
-        case 4: if(pin_chng_scr() == OP_FAILED) return OP_FAILED; break;
+        case 4: while(pin_chng_scr() == OP_LOOPING); break;
         case 0:
             prnt_ui_line(0);
-            printf(" Goodbye, %s!\n\n Press any key to continue...\n", cur_atm_ptr->name);
+            printf(" See You Again, %s!\n\n Press any key to continue...\n", cur_atm_ptr->name);
             _getch();
             return OP_FINISHED;
     }
@@ -291,7 +274,7 @@ int withdraw_scr() {
         }
 
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], cur_atm_ptr->balance);
-        update_atm_file(cur_index, 3, money_str);
+        update_atm_file(cur_atm_index, 3, money_str);
     }
     else {
         prnt_ui_line(0);
@@ -321,23 +304,14 @@ int transfer_scr() {
     printf(" Current Balance: %s\n", money_str);
     prnt_ui_line(0);
 
-    printf("%-*s", UI_PROMPT_MSG_LEN, " Enter Account No:");
-    while(1) {
-        if((input_size = unbuffered_input(input, main_meta.data_sizes[1], 1, 0, ch)) == OP_CANCELLED) return OP_CANCELLED;
-        if(input_size == main_meta.data_sizes[1]) {
-            for(int i = 0; i < atm_list_size; i++) {
-                if(strcmp(input, atm_list[i].account) == 0 && strcmp(input, cur_atm_ptr->account) != 0) {
-                    target_index = i;
-                    target_atm = atm_list + i;
-                    break;
-                }
-            }
-            if(target_index != -1) break;
-        }
-        
-        prnt_invalid("Invalid Account", input_size, &ch);
+    printf("%-*s", UI_PROMPT_MSG_LEN, " Enter Account Number:");
+    if((target_index = account_input(input, &input_size, &ch)) == OP_CANCELLED) return OP_CANCELLED;
+    if(target_index == cur_atm_index) {
+        printf(" Can't Transfer To Self.\n");
+        _getch();
+        return OP_LOOPING;
     }
-    putchar('\n');
+    target_atm = atm_list + target_index;
 
     printf(
         "%-*s%s\n"
@@ -348,7 +322,6 @@ int transfer_scr() {
 
     prnt_ui_line(0);
     if((transfer_amount = money_input(input, &input_size, &ch, 2)) == OP_CANCELLED) return OP_CANCELLED;
-
     str_to_money(money_str, transfer_amount);
     printf("\n Transfer Amount: %s\n Please Confirm. (Y/N): ", money_str);
 
@@ -368,13 +341,13 @@ int transfer_scr() {
         }
 
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], cur_atm_ptr->balance);
-        update_atm_file(cur_index, 3, money_str);
+        update_atm_file(cur_atm_index, 3, money_str);
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], target_atm->balance);
         update_atm_file(target_index, 3, money_str);
     }
     else {
         prnt_ui_line(0);
-        printf(" mTransaction Cancelled.\n");
+        printf(" Transaction Cancelled.\n");
     }
 
     printf("\n Press ESC to return, any other key to continue transferring...\n");
@@ -383,36 +356,44 @@ int transfer_scr() {
 }
 
 /**
- * @return  OP states: CANCELLED, FINISHED, FAILED
+ * @return  OP states: CANCELLED, LOOPING, FINISHED
  */
 int pin_chng_scr() {
     char input[100], ch;
     int input_size = 0;
     ATM temp_atm;
-    atm_malloc(&temp_atm, &main_meta);
 
     system("cls");
     prnt_header();
     printf(" Changing PIN...\n\n Press ESC to cancel.\n");
     prnt_ui_line(0);
 
-    printf("%-*s", UI_PROMPT_MSG_LEN, " Enter Current PIN:");
-    switch(pin_input(input, &input_size, &ch, cur_atm_ptr, 1)) {
-        case OP_CANCELLED: return OP_CANCELLED;
-        case OP_FAILED: return OP_FAILED;
-    }
+    // printf("%-*s", UI_PROMPT_MSG_LEN, " Enter Current PIN:");
+    // switch(pin_input(input, &input_size, &ch, cur_atm_ptr, 1)) {
+    //     case OP_CANCELLED: return OP_CANCELLED;
+    //     case OP_FAILED: return OP_FAILED;
+    // }
 
     printf("%-*s", UI_PROMPT_MSG_LEN, " Enter New PIN:");
     if(pin_input(input, &input_size, &ch, NULL, 0) == OP_CANCELLED) return OP_CANCELLED;
+    if(strcmp(input, cur_atm_ptr->pin) == 0) {
+        printf(" Please Enter A New PIN.\n");
+        _getch();
+        return OP_LOOPING;
+    }
+
+    atm_malloc(&temp_atm, &main_meta);
     strcpy(temp_atm.pin, input);
 
     printf("%-*s", UI_PROMPT_MSG_LEN, " Re-enter New PIN:");
     if(pin_input(input, &input_size, &ch, &temp_atm, 0) == OP_CANCELLED) return OP_CANCELLED;
+
     strcpy(cur_atm_ptr->pin, temp_atm.pin);
-    update_atm_file(cur_index, 2, cur_atm_ptr->pin);
+    update_atm_file(cur_atm_index, 2, cur_atm_ptr->pin);
+    free_atm(&temp_atm);
 
     prnt_ui_line(0);
-    printf(" Successfully Changed PIN !\n\n Press any key to return...\n");
+    printf(" Successfully Changed PIN!\n\n Press any key to return...\n");
     _getch();
 
     return OP_FINISHED;

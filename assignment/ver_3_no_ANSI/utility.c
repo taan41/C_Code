@@ -18,7 +18,7 @@
 // UI 
 
 #define UI_WIDTH 50
-#define UI_PROMPT_MSG_LEN 21
+#define UI_PROMPT_MSG_LEN 23
 #define UI_CURRENCY " VND"
 
 // ASCII for keys

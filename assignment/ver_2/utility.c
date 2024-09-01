@@ -74,7 +74,7 @@ int yes_no_input();
 
 ATM *cur_atm_ptr, *atm_list = NULL;
 size_t atm_list_size = 0, atm_list_buffer_size = 10;
-int cur_index = -1;
+int cur_atm_index = -1;
 
 /**
  * @brief    Initialize atm_list, should be called once at the start

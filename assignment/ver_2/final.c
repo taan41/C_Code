@@ -147,12 +147,12 @@ int login_scr() {
         if(input_size == DATA_LEN[1]) {
             for(int i = 0; i < atm_list_size; i++) {
                 if(strcmp(input, atm_list[i].account) == 0) {
-                    cur_index = i;
+                    cur_atm_index = i;
                     cur_atm_ptr = atm_list + i;
                     break;
                 }
             }
-            if(cur_index != -1) break;
+            if(cur_atm_index != -1) break;
 
             prnt_invalid("Unregistered account", input_size, &ch);
             continue;
@@ -269,7 +269,7 @@ int withdraw_scr() {
         }
 
         sprintf(money_str, "%-*lld", DATA_LEN[3], cur_atm_ptr->balance);
-        update_atm_file(cur_index, 3, money_str);
+        update_atm_file(cur_atm_index, 3, money_str);
     }
     else printf(" Cancelled transaction.\n");
 
@@ -334,7 +334,7 @@ int transfer_scr() {
         target_atm->balance += transfer_amount;
 
         sprintf(money_str, "%-*lld", DATA_LEN[3], cur_atm_ptr->balance);
-        update_atm_file(cur_index, 3, money_str);
+        update_atm_file(cur_atm_index, 3, money_str);
         sprintf(money_str, "%-*lld", DATA_LEN[3], target_atm->balance);
         update_atm_file(target_index, 3, money_str);
     }
@@ -368,7 +368,7 @@ int pin_chng_scr() {
     printf("%-*s", UI_PROMPT_MSG_LEN, " Re-enter New PIN:");
     if(pin_input(input, &input_size, &ch, new_pin, 0) == OP_CANCELLED) return OP_CANCELLED;
     strcpy(cur_atm_ptr->pin, new_pin);
-    update_atm_file(cur_index, 2, cur_atm_ptr->pin);
+    update_atm_file(cur_atm_index, 2, cur_atm_ptr->pin);
 
     prnt_ui_line(0);
     printf(" Changed PIN successfully!\n Press any key to return...");
