@@ -23,7 +23,7 @@ void reprnt_save_file();
 void atm_malloc(ATM *atm, ATM_METADATA *meta);
 void atm_to_file(ATM *atm);
 void atm_to_list(ATM *atm);
-void update_atm_file(int atm_index, int data_type, char *modified_data);
+void update_atm_file(int atm_index);
 
 void random_account(char *name, char *account, char *pin, char *balance);
 int validate_created_data(char *data, int data_size, int data_type);
@@ -148,7 +148,7 @@ void atm_to_list(ATM *atm) {
  * @param data_type     0: Name, 1: Account, 2: Pin, 3: Balance, 4: PIN attempts
  * @param modified_data String of value to change
  */
-void update_atm_file(int atm_index, int data_type, char *modified_data) {
+void update_atm_file(int atm_index) {
     FILE *file = fopen(SAVE_FILE, "r+");
 
     for(int i = 0; i < atm_index + 1; i++) fscanf(file, "%*[^\n]\n");
@@ -264,12 +264,12 @@ int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_
                     prnt_invalid(invalid_msg, *input_size, ch);
 
                     sprintf(attempts_str, "%d", atm_to_check->PIN_attempt);
-                    update_atm_file(cur_atm_index, 4, attempts_str);
+                    update_atm_file(cur_atm_index);
                     continue;
                 }
                 atm_to_check->PIN_attempt = DEFAULT_ATTEMPTS_AMOUNT;
                 sprintf(attempts_str, "%d", DEFAULT_ATTEMPTS_AMOUNT);
-                update_atm_file(cur_atm_index, 4, attempts_str);
+                update_atm_file(cur_atm_index);
             }
             break;
         }

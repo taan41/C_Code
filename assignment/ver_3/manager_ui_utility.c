@@ -238,8 +238,8 @@ void str_to_money(char *target_money_str, long long int money) {
         }
     }
 
-    strcat(result_str, UI_CURRENCY);
-    sprintf(target_money_str, "%s", result_str);
+    strcat(money_str, UI_CURRENCY);
+    sprintf(target_money_str, "%s", money_str);
 }
 
 void str_to_line(char *target, int double_line) {

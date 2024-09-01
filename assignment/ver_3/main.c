@@ -287,7 +287,7 @@ int withdraw_scr() {
         }
 
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], cur_atm_ptr->balance);
-        update_atm_file(cur_atm_index, 3, money_str);
+        update_atm_file(cur_atm_index);
     }
     else {
         prnt_ui_line(0);
@@ -355,9 +355,9 @@ int transfer_scr() {
         }
 
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], cur_atm_ptr->balance);
-        update_atm_file(cur_atm_index, 3, money_str);
+        update_atm_file(cur_atm_index);
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], target_atm->balance);
-        update_atm_file(target_index, 3, money_str);
+        update_atm_file(target_index);
     }
     else {
         prnt_ui_line(0);
@@ -402,7 +402,7 @@ int pin_chng_scr() {
     printf("%-*s: ", UI_PROMPT_MSG_LEN, " Re-enter New PIN");
     if(pin_input(input, &input_size, &ch, &temp_atm, 0) == OP_CANCELLED) return OP_CANCELLED;
     strcpy(cur_atm_ptr->pin, temp_atm.pin);
-    update_atm_file(cur_atm_index, 2, cur_atm_ptr->pin);
+    update_atm_file(cur_atm_index);
 
     prnt_ui_line(0);
     printf(" Successfully Changed PIN !\n\n Press any key to return...");
