@@ -1,4 +1,4 @@
-#include "data_manager.c"
+#include "manager_atm_data.c"
 
 #define FILE_NAME "data\\account-number.bin"
 
@@ -52,7 +52,7 @@ void write_data_from_data_manager() {
 }
 
 int main() {
-    MKDIR("data");
+    _mkdir("data");
 
     // write_custom_data();
     write_data_from_data_manager();
