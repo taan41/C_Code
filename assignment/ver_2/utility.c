@@ -52,8 +52,8 @@ typedef struct ATM {
 } ATM;
 
 void init_atm_list();
-void atm_to_file(ATM *atm);
-void atm_to_list(ATM *atm);
+void atm_append_file(ATM *atm);
+void atm_append_list(ATM *atm);
 void update_atm_file(int atm_index, int data_type, char *modified_data);
 void random_account(char *name, char *account, char *pin, char *balance);
 int validate_created_data(char *data, int data_size, int data_type);
@@ -99,13 +99,13 @@ void init_atm_list() {
         while(isspace(*--trim_ptr));
         *(trim_ptr + 1) = '\0';
         temp_atm.balance = strtoll(buffer, NULL, 10);
-        atm_to_list(&temp_atm);
+        atm_append_list(&temp_atm);
     }
 
     fclose(file);
 }
 
-void atm_to_file(ATM *atm) {
+void atm_append_file(ATM *atm) {
     FILE *file = fopen(FILE_NAME, "a");
 
     fprintf(file,
@@ -119,7 +119,7 @@ void atm_to_file(ATM *atm) {
     fclose(file);
 }
 
-void atm_to_list(ATM *atm) {
+void atm_append_list(ATM *atm) {
     strcpy(atm_list[atm_list_size].name, atm->name);
     strcpy(atm_list[atm_list_size].account, atm->account);
     strcpy(atm_list[atm_list_size].pin, atm->pin);

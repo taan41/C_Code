@@ -98,7 +98,7 @@ int creating_scr() {
     char atm_buffer[5][BUFFER_SIZE], input[BUFFER_SIZE], prompt_msg[BUFFER_SIZE], invalid_msg[BUFFER_SIZE], min_bal[BUFFER_SIZE], ch;
     int input_size, changed, valid;
 
-    str_to_money(min_bal, main_meta.bal_create_min);
+    str_to_money(min_bal, main_meta.bal_min);
     random_account(atm_buffer[0], atm_buffer[1], atm_buffer[2], atm_buffer[3]);
 
     for(int i = 0; i < 4; i++) {
@@ -143,8 +143,8 @@ int creating_scr() {
         new_atm.balance = strtoll(atm_buffer[3], NULL, 10);
         new_atm.PIN_attempt = DEFAULT_ATTEMPTS_AMOUNT;
 
-        atm_to_file(&new_atm);
-        atm_to_list(&new_atm);
+        atm_append_file(&new_atm);
+        atm_append_list(&new_atm);
 
         printf(" Successfully Created ATM Card!\n");
     }
@@ -271,19 +271,19 @@ int withdraw_scr() {
     }
 
     str_to_money(money_str, withdraw_amount);
-    printf("\n Withdraw Amount: %s\n Please Confirm (Y/N): ", money_str);
+    printf("\n Withdraw Amount: %s\n Fee: 1.000 VND\n VAT: 100 VND\n Please Confirm (Y/N): ", money_str);
 
     if(yes_no_input()) {
         printf("\n Successfully Withdrawed %s!\n", money_str);
-        cur_atm_ptr->balance -= withdraw_amount;
+        cur_atm_ptr->balance -= withdraw_amount + 1100;
         str_to_money(money_str, cur_atm_ptr->balance);
         printf(" Remaining Balance: %s\n", money_str);
 
         prnt_ui_line(0);
-        printf(" Print Receipt? (Y/N): ");
+        printf(" Print Receipt (Fee Without VAT: 500 VND)? (Y/N): ");
         if(yes_no_input()) {
-            cur_atm_ptr->balance -= 1100;
-            receipt(withdraw_amount, 1);
+            cur_atm_ptr->balance -= 550;
+            receipt(withdraw_amount, 1000, 1);
         }
 
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], cur_atm_ptr->balance);
@@ -303,7 +303,7 @@ int withdraw_scr() {
  * @return  OP states: CANCELLED, LOOPING, FINISHED
  */
 int transfer_scr() {
-    long long int transfer_amount = 0;
+    long long int transfer_amount = 0, transfer_fee;
     char input[BUFFER_SIZE], ch = 0, money_str[BUFFER_SIZE];
     int input_size, target_index = -1;
     ATM *target_atm;
@@ -336,22 +336,31 @@ int transfer_scr() {
     prnt_ui_line(0);
     if((transfer_amount = money_input(input, &input_size, &ch, 2)) == OP_CANCELLED) return OP_CANCELLED;
 
+    transfer_fee = transfer_amount * 0.05 / 100;
+    if(transfer_fee < 2000) transfer_fee = 2000;
+    else if(transfer_fee > 10000) transfer_fee = 10000;
+
     str_to_money(money_str, transfer_amount);
-    printf("\n Transfer Amount: %s\n Please Confirm (Y/N): ", money_str);
+    printf("\n Transfer Amount: %s\n", money_str);
+    str_to_money(money_str, transfer_fee);
+    printf(" Transfer Fee: %s\n", money_str);
+    str_to_money(money_str, transfer_fee * 0.1);
+    printf(" VAT: %s\n Please Confirm (Y/N): ", money_str);
 
     if(yes_no_input()) {
+        str_to_money(money_str, transfer_amount);
         printf("\n Successfully Transferred %s!\n", money_str);
-        cur_atm_ptr->balance -= transfer_amount;
+        cur_atm_ptr->balance -= transfer_amount + transfer_fee * 1.1;
         target_atm->balance += transfer_amount;
         
         str_to_money(money_str, cur_atm_ptr->balance);
         printf(" Remaining Balance: %s\n", money_str);
 
         prnt_ui_line(0);
-        printf(" Print Receipt? (Y/N): ");
+        printf(" Print Receipt (Fee Without VAT: 500 VND)? (Y/N): ");
         if(yes_no_input()) {
-            cur_atm_ptr->balance -= 1100;
-            receipt(transfer_amount, 2);
+            cur_atm_ptr->balance -= 550;
+            receipt(transfer_amount, transfer_fee, 2);
         }
 
         sprintf(money_str, "%-*lld", main_meta.data_sizes[3], cur_atm_ptr->balance);

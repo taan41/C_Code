@@ -8,10 +8,9 @@
 
 
 int main() {
-    char str1[10], str2[20];
-    memset(str2, 'a', 20);
-    strcpy(str1, str2);
-
-    printf("%s", str1);
+    char buffer[100], str[11];
+    scanf("%[^\n]", buffer);
+    sscanf(buffer, "%10c:", str);
+    printf("%s\n", str);
 
 }

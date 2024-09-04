@@ -21,8 +21,8 @@ void init_atm_list();
 void reprnt_save_file();
 
 void atm_malloc(ATM *atm, ATM_METADATA *meta);
-void atm_to_file(ATM *atm);
-void atm_to_list(ATM *atm);
+void atm_append_file(ATM *atm);
+void atm_append_list(ATM *atm);
 void update_atm_file(int atm_index);
 
 void random_account(char *name, char *account, char *pin, char *balance);
@@ -31,7 +31,7 @@ int validate_created_data(char *data, int data_size, int data_type);
 int account_input(char *input, int *input_size, char *ch);
 int pin_input(char *input, int *input_size, char *ch, ATM *atm_to_check, int is_censored);
 long long int money_input(char *input, int *input_size, char *ch, int mode);
-void receipt(long long int withdraw_amount, int withdraw_mode);
+void receipt(long long int withdraw_amount, long long int fee, int withdraw_mode);
 void free_atm(ATM *atm);
 void free_everything();
 
@@ -51,12 +51,22 @@ void init_data_manager() {
 }
 
 void reprnt_save_file() {
-    if(meta_cmp(&main_meta, &save_meta) == 0) {
-        meta_to_file(&main_meta, SAVE_FILE);
+    meta_to_file(&main_meta, SAVE_FILE);
+    
+    FILE *file = fopen(SAVE_FILE, "a");
 
-        for(int i = 0; i < atm_list_size; i++) atm_to_file(&atm_list[i]);
+    for(int i = 0; i < atm_list_size; i++) {
+        fprintf(file,
+            "%s%c%-*s%c%s%c%*s%c%s%c%*s%c%s%c%-*lld%c%s%c%-*d%c\n",
+            main_meta.tags[0], main_meta.separator, main_meta.data_sizes[0], atm_list[i].name, main_meta.separator,
+            main_meta.tags[1], main_meta.separator, main_meta.data_sizes[1], atm_list[i].account, main_meta.separator,
+            main_meta.tags[2], main_meta.separator, main_meta.data_sizes[2], atm_list[i].pin, main_meta.separator,
+            main_meta.tags[3], main_meta.separator, main_meta.data_sizes[3] + 2, atm_list[i].balance, main_meta.separator,
+            main_meta.tags[4], main_meta.separator, main_meta.data_sizes[4], atm_list[i].PIN_attempt, main_meta.separator
+        );
     }
 
+    fclose(file);
 }
 
 void init_atm_list() {
@@ -84,7 +94,7 @@ void init_atm_list() {
     );
 
     char balance_buffer[50], attempt_buffer[10];
-    fscanf(file, "%[^\n]\n", line);
+    fscanf(file, "%*[^\n]\n");
     while(fscanf(file, "%[^\n]\n", line) == 1) {
         sscanf(line, format, temp_atm.name, temp_atm.account, temp_atm.pin, balance_buffer, attempt_buffer);
 
@@ -95,7 +105,7 @@ void init_atm_list() {
         temp_atm.balance = strtoll(balance_buffer, NULL, 10);
         temp_atm.PIN_attempt = strtol(attempt_buffer, NULL, 10);
 
-        atm_to_list(&temp_atm);
+        atm_append_list(&temp_atm);
     }
 
     fclose(file);
@@ -111,7 +121,7 @@ void atm_malloc(ATM *atm, ATM_METADATA *meta) {
     atm->PIN_attempt = -1;
 }
 
-void atm_to_file(ATM *atm) {
+void atm_append_file(ATM *atm) {
     FILE *file = fopen(SAVE_FILE, "a");
 
     fprintf(file,
@@ -126,7 +136,7 @@ void atm_to_file(ATM *atm) {
     fclose(file);
 }
 
-void atm_to_list(ATM *atm) {
+void atm_append_list(ATM *atm) {
     atm_list[atm_list_size].name = strdup(atm->name);
     atm_list[atm_list_size].account = strdup(atm->account);
     atm_list[atm_list_size].pin = strdup(atm->pin);
@@ -200,7 +210,7 @@ void random_account(char *name, char *account, char *pin, char *balance) {
  */
 int validate_created_data(char *data, int data_size, int data_type) {
     if(data_type == 1) for(int i = 0; i < atm_list_size; i++) if(strcmp(data, atm_list[i].account) == 0) return 2;
-    if(data_type == 3 && strtoll(data, NULL, 10) < main_meta.bal_create_min) return 3;
+    if(data_type == 3 && strtoll(data, NULL, 10) < main_meta.bal_min) return 3;
     return (data_type == 1 || data_type == 2) ? data_size == main_meta.data_sizes[data_type] : (data_size > 0 && data_size <= main_meta.data_sizes[data_type]);
 }
 
@@ -315,9 +325,9 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
 
         withdraw_amount = strtoll(input, NULL, 10);
         if(*input_size == 0 || withdraw_amount == 0) prnt_invalid("Invalid Ammount", *input_size, ch);
-        else if(withdraw_amount > cur_atm_ptr->balance) prnt_invalid("Not Enough Money", *input_size, ch);
+        else if(withdraw_amount > (cur_atm_ptr->balance - main_meta.bal_min)) prnt_invalid("Not Enough Money", *input_size, ch);
         else if(mode == 1 && withdraw_amount > main_meta.bal_withdraw_max) prnt_invalid(overwithdraw_msg, *input_size, ch);
-        else if(mode == 1 && withdraw_amount % 100000 != 0) prnt_invalid("Must Be Multiple of 100.000", *input_size, ch);
+        else if(mode == 1 && withdraw_amount % 50000 != 0) prnt_invalid("Must Be Multiple of 50.000", *input_size, ch);
         else if(mode == 2 && withdraw_amount < 10000) prnt_invalid(undertransfer_msg, *input_size, ch);
         else break;
     }
@@ -329,7 +339,7 @@ long long int money_input(char *input, int *input_size, char *ch, int mode) {
 /**
  * @param withdraw_mode     1: Withdraw cash, 2: Transfer
  */
-void receipt(long long int withdraw_amount, int withdraw_mode) {
+void receipt(long long int withdraw_amount, long long int fee, int withdraw_mode) {
     system("cls");
     _mkdir("receipts");
 
@@ -398,12 +408,12 @@ void receipt(long long int withdraw_amount, int withdraw_mode) {
     strcat(result_str, line_write);
 
     sprintf(buffer, " Le phi:");
-    str_to_money(buffer2, 1000);
+    str_to_money(buffer2, fee);
     sprintf(line_write, "%s%*s \n", buffer, UI_WIDTH - strlen(buffer) - 1, buffer2);
     strcat(result_str, line_write);
 
     sprintf(buffer, " VAT:");
-    str_to_money(buffer2, 100);
+    str_to_money(buffer2, fee * 0.1);
     sprintf(line_write, "%s%*s \n", buffer, UI_WIDTH - strlen(buffer) - 1, buffer2);
     strcat(result_str, line_write);
 

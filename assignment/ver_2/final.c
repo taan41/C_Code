@@ -116,8 +116,8 @@ int creating_scr() {
         strcpy(new_atm.pin, atm_buffer[2]);
         new_atm.balance = strtoll(atm_buffer[3], NULL, 10);
 
-        atm_to_file(&new_atm);
-        atm_to_list(&new_atm);
+        atm_append_file(&new_atm);
+        atm_append_list(&new_atm);
 
         printf(" Created ATM Card successfully!\n");
     }

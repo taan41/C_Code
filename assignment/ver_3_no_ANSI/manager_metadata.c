@@ -14,7 +14,7 @@ typedef struct ATM_METADATA{
     size_t data_sizes[5];
     char *tags[5];
 
-    long long int bal_create_min;
+    long long int bal_min;
     long long int bal_withdraw_max;
     char *bank_name;
 } ATM_METADATA;
@@ -34,7 +34,7 @@ ATM_METADATA default_meta = {
     .separator = ':',
     .data_sizes = {30, 14, 6, 18, 2},
     .tags = {"name", "account", "pin", "balance", "attempt"},
-    .bal_create_min = 50000,
+    .bal_min = 50000,
     .bal_withdraw_max = 25000000,
     .bank_name = "VTC Academy Bank"
 };
@@ -77,7 +77,7 @@ int meta_from_file(ATM_METADATA *meta, char *file_name) {
     }
     
     if(fscanf(file, format, buffer) != 1) return 2;
-    meta->bal_create_min = strtoll(buffer, NULL, 10);
+    meta->bal_min = strtoll(buffer, NULL, 10);
 
     if(fscanf(file, format, buffer) != 1) return 2;
     meta->bal_withdraw_max = strtoll(buffer, NULL, 10);
@@ -98,7 +98,7 @@ void meta_to_file(ATM_METADATA *meta, char *file_name) {
 
     for(int i = 0; i < 5; i++) fprintf(file, "%d|", meta->data_sizes[i], s);
     for(int i = 0; i < 5; i++) fprintf(file, "%s|", meta->tags[i], s);
-    fprintf(file, "%lld|", meta->bal_create_min, s);
+    fprintf(file, "%lld|", meta->bal_min, s);
     fprintf(file, "%lld|", meta->bal_withdraw_max, s);
     fprintf(file, "%s|", meta->bank_name, s);
 
@@ -108,7 +108,7 @@ void meta_to_file(ATM_METADATA *meta, char *file_name) {
         "## '|' seperates each metadata\n"
         "## List of metadata:   '(char)seperator'\n"
         "##                     '(int)data_sizes[5]' '(char *)tags[5]'\n"
-        "##                     '(long long int)bal_create_min' '(long long int)bal_withdraw_max'\n"
+        "##                     '(long long int)bal_min' '(long long int)bal_withdraw_max'\n"
         "##                     '(char *)bank_name'\n"
         "## Each element of data_sizes[] and tags[] represents: 0 = name, 1 = account no, 2 = pin code, 3 = balance, 4 = attempt\n",
         meta->separator
@@ -127,7 +127,7 @@ int meta_cmp(ATM_METADATA *meta1, ATM_METADATA *meta2) {
     }
 
     int cmp = meta1->separator == meta2->separator;
-    if(cmp) cmp = meta1->bal_create_min == meta2->bal_create_min;
+    if(cmp) cmp = meta1->bal_min == meta2->bal_min;
     if(cmp) cmp = meta1->bal_withdraw_max == meta2->bal_withdraw_max;
     if(strcmp(meta1->bank_name, meta2->bank_name) != 0) return 0;
 
